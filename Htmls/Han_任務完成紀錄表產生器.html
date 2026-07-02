@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>任務完成紀錄表產生器</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+    background: #e8f5e9;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  h1 { text-align: center; color: #2e7d32; margin-bottom: 16px; font-size: 1.5rem; }
+
+  /* ── 工具列 ── */
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; margin-bottom: 14px;
+  }
+  button {
+    padding: 7px 14px; border: none; border-radius: 10px;
+    cursor: pointer; font-weight: bold; transition: opacity .2s;
+  }
+  button:hover { opacity: .82; }
+  input[type="file"] { display: none; }
+
+  /* ── 任務設定區 ── */
+  .task-setup {
+    max-width: 900px; margin: 0 auto 14px;
+    background: #fff; border-radius: 14px; padding: 14px 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  }
+  .task-setup h3 { color: #2e7d32; font-size: .95rem; margin-bottom: 10px; }
+  .task-rows { display: flex; flex-direction: column; gap: 7px; }
+  .task-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .task-row .task-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: bold; color: #fff; flex-shrink: 0;
+  }
+  .task-row input[type="text"] {
+    flex: 1; padding: 5px 10px; border: 1px solid #a5d6a7;
+    border-radius: 8px; font-size: .88rem;
+  }
+  .task-row input[type="text"]:focus { outline: none; border-color: #4caf50; }
+  .task-toggle {
+    padding: 4px 10px; font-size: .78rem; border-radius: 8px;
+    background: #e8f5e9; color: #388e3c; border: 1px solid #a5d6a7; cursor: pointer;
+  }
+  .task-toggle.on { background: #4caf50; color: #fff; border-color: #4caf50; }
+
+  /* ── 格線設定 ── */
+  .grid-settings {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: #fff; border-radius: 14px; padding: 10px 16px;
+    max-width: 900px; margin: 0 auto 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  }
+  .grid-settings label { font-size: .88rem; color: #555; }
+  .grid-settings input[type="number"] {
+    width: 55px; padding: 5px 6px; border: 1px solid #a5d6a7;
+    border-radius: 8px; text-align: center;
+  }
+
+  /* ── 統計 ── */
+  .stats { text-align: center; font-size: .88rem; color: #555; margin-bottom: 14px; }
+  .stats span { margin: 0 8px; }
+
+  /* ── 教室 ── */
+  .classroom-wrap {
+    background: #f9fbe7; border-radius: 18px; padding: 18px 24px;
+    max-width: 900px; margin: 0 auto;
+    box-shadow: 0 4px 18px rgba(46,125,50,.1);
+  }
+  .board-label {
+    text-align: center; background: #66bb6a; color: #fff;
+    border-radius: 12px; padding: 8px 0; font-size: 1rem;
+    font-weight: bold; margin-bottom: 12px; letter-spacing: .1em;
+  }
+  .bulletin-label {
+    text-align: center; background: #c8e6c9; color: #2e7d32;
+    border-radius: 12px; padding: 6px 0; font-size: .9rem;
+    font-weight: bold; margin-bottom: 12px; letter-spacing: .1em;
+  }
+  .seat-area { display: flex; align-items: stretch; gap: 8px; }
+  .side-label {
+    writing-mode: vertical-rl; text-orientation: upright;
+    background: #fff9c4; color: #795548; border-radius: 10px;
+    padding: 10px 6px; font-size: .85rem; font-weight: bold;
+    display: flex; align-items: center; justify-content: center; min-width: 32px;
+  }
+  .grid { flex: 1; display: grid; gap: 8px; }
+
+  /* ── 座位 ── */
+  .seat {
+    background: #fff; border: 2px dashed #e0e0e0; border-radius: 12px;
+    min-height: 82px; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    cursor: pointer; position: relative;
+    transition: border-color .2s, background .2s;
+    padding: 6px 5px 5px; user-select: none;
+  }
+  .seat.empty-slot { color: #ccc; font-size: .9rem; border-color: #eee;
+    justify-content: center; }
+  .seat.empty-slot:hover { border-color: #81c784; }
+  .seat.occupied { border: 2px solid #81c784; background: #f1f8e9; }
+  .seat.all-done { background: #c8e6c9; border-color: #4caf50; }
+  .seat.partial  { background: #fff9c4; border-color: #ffd54f; }
+  .seat.none-done{ background: #fff; border-color: #81c784; }
+
+  .seat-num { position: absolute; top: 4px; left: 7px; font-size: .62rem; color: #bbb; }
+  .seat-name { font-size: .82rem; font-weight: bold; color: #555; text-align: center;
+    margin-top: 2px; line-height: 1.3; }
+  .seat-tasks { display: flex; flex-direction: column; gap: 2px; width: 100%; margin-top: 4px; }
+  .task-badge {
+    font-size: .65rem; border-radius: 5px; padding: 1px 5px;
+    text-align: center; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .task-badge.done { color: #fff; }
+  .task-badge.undone { background: #f5f5f5; color: #bbb; }
+
+  /* ── Popup ── */
+  .popup-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.28); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .popup-overlay.show { display: flex; }
+  .popup {
+    background: #fff; border-radius: 16px; padding: 22px 28px;
+    min-width: 260px; box-shadow: 0 8px 32px rgba(0,0,0,.18); text-align: center;
+  }
+  .popup h3 { color: #2e7d32; margin-bottom: 14px; font-size: 1.05rem; }
+  .task-checks { display: flex; flex-direction: column; gap: 9px; text-align: left; margin-bottom: 16px; }
+  .task-check-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 10px; cursor: pointer;
+    transition: background .15s;
+  }
+  .task-check-row:hover { background: #f1f8e9; }
+  .task-check-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #4caf50; }
+  .task-check-row label { font-size: .9rem; cursor: pointer; flex: 1; }
+  .popup-actions { display: flex; flex-direction: column; gap: 8px; }
+  .popup-actions button { font-size: .9rem; padding: 8px; }
+  .btn-confirm { background: #81c784; color: #1b5e20; }
+  .btn-swap    { background: #ce93d8; color: #6a1b9a; }
+  .btn-remove  { background: #ffccbc; color: #bf360c; }
+  .btn-cancel  { background: #f5f5f5; color: #555; }
+  .btn-all     { background: #a5d6a7; color: #1b5e20; font-size:.8rem; padding:5px 10px; border-radius:8px; }
+  .btn-none    { background: #e0e0e0; color: #555; font-size:.8rem; padding:5px 10px; border-radius:8px; }
+
+  /* ── 選人 popup ── */
+  .name-list { display: flex; flex-wrap: wrap; gap: 6px; max-height: 200px; overflow-y: auto; }
+  .name-tag {
+    background: #c8e6c9; color: #1b5e20; border-radius: 20px;
+    padding: 4px 12px; font-size: .82rem; cursor: pointer; transition: background .2s;
+  }
+  .name-tag:hover { background: #81c784; }
+  .name-tag.placed { background: #e0e0e0; color: #aaa; cursor: default; }
+
+  /* ── 底部 panel ── */
+  .panel-row {
+    display: flex; gap: 16px; max-width: 900px;
+    margin: 16px auto 0; flex-wrap: wrap;
+  }
+  .name-pool { flex: 1; min-width: 200px; background: #fff; border-radius: 14px;
+    padding: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+  .name-pool h3 { color: #2e7d32; font-size: .95rem; margin-bottom: 8px; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .toolbar, .panel-row, .stats, .task-setup, .grid-settings { display: none; }
+    .classroom-wrap { box-shadow: none; max-width: 100%; }
+    .seat { min-height: 70px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>✅ 任務完成紀錄表產生器</h1>
+
+<!-- 工具列 -->
+<div class="toolbar">
+  <button style="background:#81c784;color:#fff" onclick="document.getElementById('fileInput').click()">📂 載入名單</button>
+  <input type="file" id="fileInput" accept=".txt,.csv" onchange="loadFile(event)">
+  <button style="background:#4caf50;color:#fff" onclick="autoAssign()">🎲 自動分配座位</button>
+  <button style="background:#90caf9;color:#fff" onclick="clearAllTasks()">🧹 清除所有任務</button>
+  <button style="background:#ef9a9a;color:#fff" onclick="resetAll()">🔄 重置全部</button>
+  <button style="background:#a5d6a7;color:#fff" onclick="window.print()">🖨️ 列印</button>
+  <button style="background:#ffcc80;color:#555" onclick="exportCSV()">📊 匯出 CSV</button>
+  <button style="background:#80cbc4;color:#fff" onclick="exportHTML()">💾 儲存任務單</button>
+</div>
+
+<!-- 任務設定 -->
+<div class="task-setup">
+  <h3>📌 任務設定（最多 6 個，點開關啟用）</h3>
+  <div class="task-rows" id="taskRows"></div>
+</div>
+
+<!-- 格線設定 -->
+<div class="grid-settings">
+  <label>列數（排）：</label>
+  <input type="number" id="rowCount" value="8" min="1" max="20">
+  <label>欄數（行）：</label>
+  <input type="number" id="colCount" value="4" min="1" max="12">
+  <button style="background:#78909c;color:#fff;font-weight:bold" onclick="rebuildGrid()">套用格線</button>
+</div>
+
+<!-- 統計 -->
+<div class="stats" id="statsBar"></div>
+
+<!-- 教室 -->
+<div class="classroom-wrap">
+  <div class="bulletin-label">教室後方 ／ 布告欄</div>
+  <div class="seat-area">
+    <div class="side-label">後門</div>
+    <div class="grid" id="seatGrid"></div>
+    <div style="width:32px"></div>
+  </div>
+  <div class="board-label" style="margin-top:12px">講台 ／ 黑板</div>
+</div>
+
+<!-- 待分配名單 -->
+<div class="panel-row">
+  <div class="name-pool">
+    <h3>📋 待分配名單</h3>
+    <div class="name-list" id="namePool"></div>
+  </div>
+  <div class="name-pool" style="max-width:300px">
+    <h3>💡 操作說明</h3>
+    <div style="font-size:.82rem;color:#666;line-height:1.7">
+      1. 設定任務名稱並點「開關」啟用<br>
+      2. 載入名單（.txt/.csv，每行一個姓名）<br>
+      3. 調整格線後「套用格線」<br>
+      4. 「自動分配座位」隨機排位<br>
+      5. 點座位 → 勾選該學生完成的任務<br>
+      6. 🟡 部分完成、🟢 全部完成<br>
+      7. 「儲存任務單」匯出固定版 HTML
+    </div>
+  </div>
+</div>
+
+<!-- 任務 popup -->
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup">
+    <h3 id="popupTitle">任務完成狀況</h3>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px">
+      <button class="btn-all"  onclick="checkAll()">全選</button>
+      <button class="btn-none" onclick="checkNone()">全清</button>
+    </div>
+    <div class="task-checks" id="taskChecks"></div>
+    <div class="popup-actions">
+      <button class="btn-confirm" onclick="saveTaskPopup()">✅ 確認</button>
+      <button class="btn-swap"    onclick="startSwap()">🔀 交換座位</button>
+      <button class="btn-remove"  onclick="removeSeat()">🗑️ 移除學生</button>
+      <button class="btn-cancel"  onclick="closePopup()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 選人 popup -->
+<div class="popup-overlay" id="pickOverlay">
+  <div class="popup" style="min-width:280px">
+    <h3>選擇學生</h3>
+    <div class="name-list" id="pickList" style="max-height:260px;overflow-y:auto;justify-content:center"></div>
+    <button class="btn-cancel" style="margin-top:12px;width:100%;padding:8px" onclick="closePickOverlay()">取消</button>
+  </div>
+</div>
+
+<script>
+// ─── 任務定義 ─────────────────────────────────
+const TASK_COLORS = ['#ef5350','#ff9800','#fdd835','#66bb6a','#42a5f5','#ab47bc'];
+const TASK_LIGHT  = ['#ffcdd2','#ffe0b2','#fff9c4','#c8e6c9','#bbdefb','#e1bee7'];
+
+let taskDefs = [
+  { name: '任務一', on: true },
+  { name: '任務二', on: true },
+  { name: '任務三', on: false },
+  { name: '任務四', on: false },
+  { name: '任務五', on: false },
+  { name: '任務六', on: false },
+];
+
+// ─── 座位資料 ─────────────────────────────────
+let rows = 8, cols = 4;
+let seats = [];   // { name:'', tasks:[] }  tasks = [true,false,...]
+let names = [];
+let swapPending = -1;
+let currentIdx = -1;
+
+function activeTasks() { return taskDefs.filter(t => t.on); }
+
+// ─── 任務設定 UI ──────────────────────────────
+function renderTaskSetup() {
+  const el = document.getElementById('taskRows');
+  el.innerHTML = taskDefs.map((t, i) => `
+    <div class="task-row">
+      <div class="task-num" style="background:${TASK_COLORS[i]}">${i+1}</div>
+      <input type="text" value="${t.name}" placeholder="任務 ${i+1} 名稱"
+        oninput="taskDefs[${i}].name=this.value; renderGrid()">
+      <button class="task-toggle ${t.on?'on':''}" onclick="toggleTask(${i})">
+        ${t.on ? '✅ 啟用' : '○ 停用'}
+      </button>
+    </div>
+  `).join('');
+}
+
+function toggleTask(i) {
+  taskDefs[i].on = !taskDefs[i].on;
+  renderTaskSetup();
+  renderGrid();
+}
+
+// ─── 格線 ─────────────────────────────────────
+function buildGrid() {
+  const total = rows * cols;
+  const old = seats.slice();
+  seats = Array.from({length: total}, (_, i) =>
+    old[i] || { name: '', tasks: [] }
+  );
+  renderGrid();
+}
+function rebuildGrid() {
+  rows = parseInt(document.getElementById('rowCount').value) || 8;
+  cols = parseInt(document.getElementById('colCount').value) || 4;
+  buildGrid();
+}
+
+// ─── 渲染 ─────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById('seatGrid');
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  grid.innerHTML = '';
+  const active = activeTasks();
+
+  seats.forEach((s, i) => {
+    const div = document.createElement('div');
+    if (!s.name) {
+      div.className = 'seat empty-slot';
+      div.innerHTML = `<span class="seat-num">${i+1}</span><span style="font-size:1.1rem;color:#ddd">空</span>`;
+    } else {
+      const doneCount = s.tasks.filter(Boolean).length;
+      const cls = doneCount === 0 ? 'none-done' : doneCount >= active.length ? 'all-done' : 'partial';
+      div.className = `seat occupied ${cls}`;
+      const badges = active.map((t, ti) => {
+        const done = s.tasks[ti] || false;
+        return `<div class="task-badge ${done?'done':'undone'}"
+          style="${done ? 'background:'+TASK_COLORS[ti] : ''}">${t.name}</div>`;
+      }).join('');
+      div.innerHTML = `
+        <span class="seat-num">${i+1}</span>
+        <span class="seat-name">${s.name}</span>
+        <div class="seat-tasks">${badges}</div>
+      `;
+    }
+    div.addEventListener('click', () => onSeatClick(i));
+    grid.appendChild(div);
+  });
+  updateStats();
+  updateNamePool();
+}
+
+// ─── 點擊座位 ─────────────────────────────────
+function onSeatClick(idx) {
+  if (swapPending !== -1) {
+    [seats[swapPending], seats[idx]] = [seats[idx], seats[swapPending]];
+    swapPending = -1;
+    renderGrid();
+    return;
+  }
+  currentIdx = idx;
+  if (seats[idx].name) openTaskPopup(idx);
+  else openPickOverlay(idx);
+}
+
+// ─── 任務 popup ───────────────────────────────
+function openTaskPopup(idx) {
+  const s = seats[idx];
+  document.getElementById('popupTitle').textContent = `${s.name} 的任務`;
+  const active = activeTasks();
+  document.getElementById('taskChecks').innerHTML = active.map((t, ti) => `
+    <div class="task-check-row" onclick="toggleCheck(${ti})">
+      <input type="checkbox" id="ck${ti}" ${s.tasks[ti] ? 'checked' : ''}
+        onclick="event.stopPropagation();seats[currentIdx].tasks[${ti}]=this.checked">
+      <div class="task-num" style="background:${TASK_COLORS[ti]};width:18px;height:18px;font-size:.68rem">${ti+1}</div>
+      <label for="ck${ti}" style="color:${TASK_COLORS[ti]};font-weight:bold">${t.name}</label>
+    </div>
+  `).join('');
+  document.getElementById('popupOverlay').classList.add('show');
+}
+
+function toggleCheck(ti) {
+  const cb = document.getElementById('ck'+ti);
+  cb.checked = !cb.checked;
+  seats[currentIdx].tasks[ti] = cb.checked;
+}
+function checkAll()  { activeTasks().forEach((_,ti)=>{ document.getElementById('ck'+ti).checked=true;  seats[currentIdx].tasks[ti]=true;  }); }
+function checkNone() { activeTasks().forEach((_,ti)=>{ document.getElementById('ck'+ti).checked=false; seats[currentIdx].tasks[ti]=false; }); }
+
+function saveTaskPopup() { closePopup(); renderGrid(); }
+function startSwap() { swapPending = currentIdx; closePopup(); alert(`已選取「${seats[currentIdx].name}」，請點選目標座位`); }
+function removeSeat() { seats[currentIdx] = { name:'', tasks:[] }; closePopup(); renderGrid(); }
+function closePopup() { document.getElementById('popupOverlay').classList.remove('show'); }
+
+// ─── 選人 popup ───────────────────────────────
+function openPickOverlay(idx) {
+  currentIdx = idx;
+  const unplaced = names.filter(n => !seats.some(s => s.name === n));
+  const list = document.getElementById('pickList');
+  list.innerHTML = unplaced.length === 0
+    ? '<span style="color:#aaa;font-size:.85rem">所有學生均已分配</span>'
+    : unplaced.map(n => `<span class="name-tag" onclick="assignName('${n.replace(/'/g,"\\'")}',${idx})">${n}</span>`).join('');
+  document.getElementById('pickOverlay').classList.add('show');
+}
+function assignName(name, idx) { seats[idx] = { name, tasks:[] }; closePickOverlay(); renderGrid(); }
+function closePickOverlay() { document.getElementById('pickOverlay').classList.remove('show'); }
+
+// ─── 載入名單 ─────────────────────────────────
+function loadFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    names = ev.target.result.split(/\r?\n/)
+      .map(l => l.split(/[,，\t]/)[0].trim()).filter(Boolean);
+    alert(`已載入 ${names.length} 位學生`);
+    renderGrid();
+  };
+  reader.readAsText(file, 'UTF-8');
+  e.target.value = '';
+}
+
+// ─── 自動分配 ─────────────────────────────────
+function autoAssign() {
+  if (!names.length) { alert('請先載入名單！'); return; }
+  const unplaced = names.filter(n => !seats.some(s => s.name === n));
+  const empty = seats.reduce((a,s,i) => { if(!s.name) a.push(i); return a; }, []);
+  const shuffled = [...unplaced].sort(() => Math.random()-.5);
+  const count = Math.min(shuffled.length, empty.length);
+  for (let i=0;i<count;i++) seats[empty[i]] = { name:shuffled[i], tasks:[] };
+  renderGrid();
+}
+
+// ─── 清除 / 重置 ──────────────────────────────
+function clearAllTasks() { seats.forEach(s => { s.tasks=[]; }); renderGrid(); }
+function resetAll() {
+  if (!confirm('確定要清除所有座位安排嗎？')) return;
+  seats = seats.map(() => ({ name:'', tasks:[] }));
+  renderGrid();
+}
+
+// ─── 名單池 ───────────────────────────────────
+function updateNamePool() {
+  const pool = document.getElementById('namePool');
+  if (!names.length) { pool.innerHTML='<span style="color:#aaa;font-size:.82rem">尚未載入名單</span>'; return; }
+  pool.innerHTML = names.map(n => {
+    const placed = seats.some(s => s.name===n);
+    return `<span class="name-tag ${placed?'placed':''}">${n}</span>`;
+  }).join('');
+}
+
+// ─── 統計 ─────────────────────────────────────
+function updateStats() {
+  const active = activeTasks();
+  let placed=0, allDone=0, partial=0, none=0;
+  seats.forEach(s => {
+    if (!s.name) return; placed++;
+    const done = s.tasks.filter(Boolean).length;
+    if (done >= active.length && active.length > 0) allDone++;
+    else if (done > 0) partial++;
+    else none++;
+  });
+  const taskSummary = active.map((t,ti) => {
+    const c = seats.filter(s => s.name && s.tasks[ti]).length;
+    return `<span style="color:${TASK_COLORS[ti]};font-weight:bold">${t.name}:${c}</span>`;
+  }).join(' ');
+  document.getElementById('statsBar').innerHTML =
+    `<span>👥 ${placed} 人</span>` +
+    `<span>🟢 全完成 ${allDone}</span>` +
+    `<span>🟡 部分 ${partial}</span>` +
+    `<span>⬜ 未開始 ${none}</span>` +
+    (active.length ? `&nbsp;｜&nbsp;${taskSummary}` : '');
+}
+
+// ─── 匯出 CSV ─────────────────────────────────
+function exportCSV() {
+  const active = activeTasks();
+  const header = ['座位','姓名',...active.map(t=>t.name),'完成數'].join(',') + '\n';
+  const body = seats.map((s,i) => {
+    if (!s.name) return `${i+1},(空),${active.map(()=>'').join(',')},`;
+    const checks = active.map((_,ti) => s.tasks[ti] ? '✓' : '');
+    const doneCount = s.tasks.filter(Boolean).length;
+    return [i+1, s.name, ...checks, doneCount].join(',');
+  }).join('\n');
+  const blob = new Blob(['﻿'+header+body], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `任務紀錄_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')}.csv`;
+  a.click();
+}
+
+// ─── 匯出固定版 HTML ──────────────────────────
+function exportHTML() {
+  const className = prompt('請輸入班級／活動名稱：', '');
+  if (className === null) return;
+
+  // < 讓 JSON.parse 仍能正確還原 <，同時不干擾 HTML 解析器
+  function safeJson(obj) {
+    return JSON.stringify(obj).replace(/</g, '\\u003c');
+  }
+
+  const R = rows, C = cols;
+  const seatsData = safeJson(seats);
+  const tasksData = safeJson(taskDefs.filter(t => t.on));
+  const colorsData = safeJson(TASK_COLORS);
+  const title = (className || '任務完成紀錄').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // 用字串拼接，完全不依賴 template literal 解析 JSON 資料
+  const parts = [];
+  parts.push('<!DOCTYPE html>\n<html lang="zh-TW">\n<head>\n<meta charset="UTF-8">\n');
+  parts.push('<meta name="viewport" content="width=device-width, initial-scale=1.0">\n');
+  parts.push('<title>' + title + '</title>\n<style>\n');
+  parts.push('*{box-sizing:border-box;margin:0;padding:0}\n');
+  parts.push('body{font-family:\'Segoe UI\',\'Microsoft JhengHei\',sans-serif;background:#e8f5e9;min-height:100vh;padding:20px}\n');
+  parts.push('h1{text-align:center;color:#2e7d32;margin-bottom:6px;font-size:1.4rem}\n');
+  parts.push('.date-row{text-align:center;color:#888;font-size:.85rem;margin-bottom:14px}\n');
+  parts.push('.toolbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px}\n');
+  parts.push('button{padding:7px 14px;border:none;border-radius:10px;cursor:pointer;font-weight:bold;transition:opacity .2s}\n');
+  parts.push('button:hover{opacity:.82}\n');
+  parts.push('.stats{text-align:center;font-size:.85rem;color:#555;margin-bottom:14px}\n.stats span{margin:0 6px}\n');
+  parts.push('.classroom-wrap{background:#f9fbe7;border-radius:18px;padding:18px 24px;max-width:900px;margin:0 auto;box-shadow:0 4px 18px rgba(46,125,50,.1)}\n');
+  parts.push('.board-label{text-align:center;background:#66bb6a;color:#fff;border-radius:12px;padding:8px 0;font-size:1rem;font-weight:bold;margin-bottom:12px;letter-spacing:.1em}\n');
+  parts.push('.bulletin-label{text-align:center;background:#c8e6c9;color:#2e7d32;border-radius:12px;padding:6px 0;font-size:.9rem;font-weight:bold;margin-bottom:12px;letter-spacing:.1em}\n');
+  parts.push('.seat-area{display:flex;align-items:stretch;gap:8px}\n');
+  parts.push('.side-label{writing-mode:vertical-rl;text-orientation:upright;background:#fff9c4;color:#795548;border-radius:10px;padding:10px 6px;font-size:.85rem;font-weight:bold;display:flex;align-items:center;justify-content:center;min-width:32px}\n');
+  parts.push('.grid{flex:1;display:grid;gap:8px}\n');
+  parts.push('.seat{background:#fff;border:2px dashed #e0e0e0;border-radius:12px;min-height:82px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;cursor:pointer;position:relative;padding:6px 5px 5px;user-select:none;transition:border-color .2s,background .2s}\n');
+  parts.push('.seat.empty-slot{color:#ccc;font-size:.9rem;border-color:#eee;justify-content:center}\n');
+  parts.push('.seat.occupied{border:2px solid #81c784;background:#f1f8e9}\n');
+  parts.push('.seat.all-done{background:#c8e6c9;border-color:#4caf50}\n');
+  parts.push('.seat.partial{background:#fff9c4;border-color:#ffd54f}\n');
+  parts.push('.seat-num{position:absolute;top:4px;left:7px;font-size:.62rem;color:#bbb}\n');
+  parts.push('.seat-name{font-size:.82rem;font-weight:bold;color:#555;text-align:center;margin-top:2px;line-height:1.3}\n');
+  parts.push('.seat-tasks{display:flex;flex-direction:column;gap:2px;width:100%;margin-top:4px}\n');
+  parts.push('.task-badge{font-size:.65rem;border-radius:5px;padding:1px 5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n');
+  parts.push('.task-badge.done{color:#fff}\n.task-badge.undone{background:#f5f5f5;color:#bbb}\n');
+  parts.push('.popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:100;align-items:center;justify-content:center}\n');
+  parts.push('.popup-overlay.show{display:flex}\n');
+  parts.push('.popup{background:#fff;border-radius:16px;padding:22px 28px;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:center}\n');
+  parts.push('.popup h3{color:#2e7d32;margin-bottom:14px;font-size:1.05rem}\n');
+  parts.push('.task-checks{display:flex;flex-direction:column;gap:9px;text-align:left;margin-bottom:16px}\n');
+  parts.push('.task-check-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;cursor:pointer;transition:background .15s}\n');
+  parts.push('.task-check-row:hover{background:#f1f8e9}\n');
+  parts.push('.task-check-row input{width:16px;height:16px;cursor:pointer;accent-color:#4caf50}\n');
+  parts.push('.task-check-row label{font-size:.9rem;cursor:pointer;flex:1}\n');
+  parts.push('.task-num-sm{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:bold;color:#fff;flex-shrink:0}\n');
+  parts.push('.popup-actions{display:flex;flex-direction:column;gap:8px}\n.popup-actions button{font-size:.9rem;padding:8px}\n');
+  parts.push('@media print{body{background:#fff;padding:0}.toolbar,.stats{display:none}.classroom-wrap{box-shadow:none;max-width:100%}.seat{min-height:70px}}\n');
+  parts.push('</style>\n</head>\n<body>\n');
+  parts.push('<h1>✅ ' + title + '</h1>\n');
+  parts.push('<div class="date-row" id="dateRow"></div>\n');
+  parts.push('<div class="toolbar">\n');
+  parts.push('  <button style="background:#ef9a9a;color:#fff" onclick="clearAll()">🧹 清除所有任務</button>\n');
+  parts.push('  <button style="background:#a5d6a7;color:#1b5e20" onclick="setAll()">✅ 全部完成</button>\n');
+  parts.push('  <button style="background:#90caf9;color:#fff" onclick="window.print()">🖨️ 列印</button>\n');
+  parts.push('  <button style="background:#ffcc80;color:#555" onclick="exportCSV()">📊 匯出 CSV</button>\n');
+  parts.push('</div>\n<div class="stats" id="statsBar"></div>\n');
+  parts.push('<div class="classroom-wrap">\n');
+  parts.push('  <div class="bulletin-label">教室後方 ／ 布告欄</div>\n');
+  parts.push('  <div class="seat-area">\n    <div class="side-label">後門</div>\n');
+  parts.push('    <div class="grid" id="seatGrid"></div>\n    <div style="width:32px"></div>\n  </div>\n');
+  parts.push('  <div class="board-label" style="margin-top:12px">講台 ／ 黑板</div>\n</div>\n');
+  parts.push('<div class="popup-overlay" id="popupOverlay">\n  <div class="popup">\n');
+  parts.push('    <h3 id="popupTitle">任務完成狀況</h3>\n');
+  parts.push('    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px">\n');
+  parts.push('      <button style="background:#a5d6a7;color:#1b5e20;font-size:.8rem;padding:5px 10px;border-radius:8px" onclick="checkAll()">全選</button>\n');
+  parts.push('      <button style="background:#e0e0e0;color:#555;font-size:.8rem;padding:5px 10px;border-radius:8px" onclick="checkNone()">全清</button>\n');
+  parts.push('    </div>\n    <div class="task-checks" id="taskChecks"></div>\n');
+  parts.push('    <div class="popup-actions">\n');
+  parts.push('      <button style="background:#81c784;color:#1b5e20" onclick="savePopup()">✅ 確認</button>\n');
+  parts.push('      <button style="background:#ce93d8;color:#6a1b9a" onclick="startSwap()">🔀 交換座位</button>\n');
+  parts.push('      <button style="background:#f5f5f5;color:#555" onclick="closePopup()">取消</button>\n');
+  parts.push('    </div>\n  </div>\n</div>\n');
+  // JS 程式碼用 backtick 字串 push，完全避免引號逃脫問題
+  const js = [];
+  js.push(`var rows=${R},cols=${C};`);
+  js.push(`var seats=JSON.parse(document.getElementById('_seats').textContent);`);
+  js.push(`var tasks=JSON.parse(document.getElementById('_tasks').textContent);`);
+  js.push(`var COLORS=JSON.parse(document.getElementById('_colors').textContent);`);
+  js.push(`var swapPending=-1,currentIdx=-1;`);
+  js.push(`document.getElementById('dateRow').textContent='日期：'+new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'});`);
+  js.push(`function renderGrid(){`);
+  js.push(`  var g=document.getElementById('seatGrid');`);
+  js.push(`  g.style.gridTemplateColumns='repeat('+cols+',1fr)';g.innerHTML='';`);
+  js.push(`  seats.forEach(function(s,i){`);
+  js.push(`    var d=document.createElement('div');`);
+  js.push(`    if(!s.name){d.className='seat empty-slot';d.innerHTML='<span class="seat-num">'+(i+1)+'<\\/span><span style="color:#ddd">空<\\/span>';}`);
+  js.push(`    else{`);
+  js.push(`      var done=(s.tasks||[]).filter(Boolean).length;`);
+  js.push(`      var cls=done===0?'':done>=tasks.length?'all-done':'partial';`);
+  js.push(`      d.className='seat occupied '+cls;`);
+  js.push(`      var badges=tasks.map(function(t,ti){`);
+  js.push(`        var ok=(s.tasks||[])[ti]||false;`);
+  js.push(`        return '<div class="task-badge '+(ok?'done':'undone')+'" style="'+(ok?'background:'+COLORS[ti]:'')+'">'+(t.name)+'<\\/div>';`);
+  js.push(`      }).join('');`);
+  js.push(`      d.innerHTML='<span class="seat-num">'+(i+1)+'<\\/span><span class="seat-name">'+s.name+'<\\/span><div class="seat-tasks">'+badges+'<\\/div>';`);
+  js.push(`    }`);
+  js.push(`    d.addEventListener('click',(function(idx){return function(){onSeatClick(idx);};})(i));`);
+  js.push(`    g.appendChild(d);`);
+  js.push(`  });`);
+  js.push(`  updateStats();`);
+  js.push(`}`);
+  js.push(`function onSeatClick(idx){`);
+  js.push(`  if(swapPending!==-1){var t=seats[swapPending];seats[swapPending]=seats[idx];seats[idx]=t;swapPending=-1;renderGrid();return;}`);
+  js.push(`  if(!seats[idx].name)return;`);
+  js.push(`  currentIdx=idx;`);
+  js.push(`  var s=seats[idx];if(!s.tasks)s.tasks=[];`);
+  js.push(`  document.getElementById('popupTitle').textContent=s.name+' 的任務';`);
+  js.push(`  document.getElementById('taskChecks').innerHTML=tasks.map(function(t,ti){`);
+  js.push(`    var ck=s.tasks[ti]?'checked':'';`);
+  js.push(`    return '<div class="task-check-row" onclick="toggleCk('+ti+')">'`);
+  js.push(`      +'<input type="checkbox" id="ck'+ti+'" '+ck+' onclick="event.stopPropagation();seats[currentIdx].tasks['+ti+']=this.checked">'`);
+  js.push(`      +'<div class="task-num-sm" style="background:'+COLORS[ti]+'">'+(ti+1)+'<\\/div>'`);
+  js.push(`      +'<label for="ck'+ti+'" style="color:'+COLORS[ti]+';font-weight:bold">'+t.name+'<\\/label><\\/div>';`);
+  js.push(`  }).join('');`);
+  js.push(`  document.getElementById('popupOverlay').classList.add('show');`);
+  js.push(`}`);
+  js.push(`function toggleCk(ti){var cb=document.getElementById('ck'+ti);cb.checked=!cb.checked;seats[currentIdx].tasks[ti]=cb.checked;}`);
+  js.push(`function checkAll(){tasks.forEach(function(_,ti){document.getElementById('ck'+ti).checked=true;seats[currentIdx].tasks[ti]=true;});}`);
+  js.push(`function checkNone(){tasks.forEach(function(_,ti){document.getElementById('ck'+ti).checked=false;seats[currentIdx].tasks[ti]=false;});}`);
+  js.push(`function savePopup(){closePopup();renderGrid();}`);
+  js.push(`function startSwap(){swapPending=currentIdx;closePopup();alert('已選取「'+seats[currentIdx].name+'」，請點選目標座位');}`);
+  js.push(`function closePopup(){document.getElementById('popupOverlay').classList.remove('show');}`);
+  js.push(`function clearAll(){seats.forEach(function(s){s.tasks=[];});renderGrid();}`);
+  js.push(`function setAll(){seats.forEach(function(s){if(s.name){if(!s.tasks)s.tasks=[];tasks.forEach(function(_,ti){s.tasks[ti]=true;});}});renderGrid();}`);
+  js.push(`function updateStats(){`);
+  js.push(`  var placed=0,allDone=0,partial=0,none=0;`);
+  js.push(`  seats.forEach(function(s){if(!s.name)return;placed++;var d=(s.tasks||[]).filter(Boolean).length;if(d>=tasks.length&&tasks.length>0)allDone++;else if(d>0)partial++;else none++;});`);
+  js.push(`  var summary=tasks.map(function(t,ti){var c=seats.filter(function(s){return s.name&&(s.tasks||[])[ti];}).length;return '<span style="color:'+COLORS[ti]+';font-weight:bold">'+t.name+':'+c+'<\\/span>';}).join(' ');`);
+  js.push(`  document.getElementById('statsBar').innerHTML='<span>👥 '+placed+' 人<\\/span><span>🟢 全完成 '+allDone+'<\\/span><span>🟡 部分 '+partial+'<\\/span><span>⬜ 未開始 '+none+'<\\/span>'+(tasks.length?'&nbsp;｜&nbsp;'+summary:'');`);
+  js.push(`}`);
+  js.push(`function exportCSV(){`);
+  js.push(`  var header=['座位','姓名'].concat(tasks.map(function(t){return t.name;})).concat(['完成數']).join(',')+'\\n';`);
+  js.push(`  var body=seats.map(function(s,i){`);
+  js.push(`    if(!s.name)return (i+1)+',(空),'+tasks.map(function(){return '';}).join(',')+',';`);
+  js.push(`    var chk=tasks.map(function(_,ti){return (s.tasks||[])[ti]?'✓':'';});`);
+  js.push(`    return [i+1,s.name].concat(chk).concat([(s.tasks||[]).filter(Boolean).length]).join(',');`);
+  js.push(`  }).join('\\n');`);
+  js.push(`  var blob=new Blob(['﻿'+header+body],{type:'text/csv;charset=utf-8'});`);
+  js.push(`  var a=document.createElement('a');a.href=URL.createObjectURL(blob);`);
+  js.push(`  a.download='任務紀錄_'+new Date().toLocaleDateString('zh-TW').split('/').join('-')+'.csv';a.click();`);
+  js.push(`}`);
+  js.push(`document.getElementById('popupOverlay').addEventListener('click',function(e){if(e.target===this)closePopup();});`);
+  js.push(`renderGrid();`);
+
+  // 資料以 application/json script tag 嵌入
+  parts.push('<script type="application/json" id="_seats">' + seatsData + '<' + '/script>\n');
+  parts.push('<script type="application/json" id="_tasks">' + tasksData + '<' + '/script>\n');
+  parts.push('<script type="application/json" id="_colors">' + colorsData + '<' + '/script>\n');
+  parts.push('<script>\n' + js.join('\n') + '\n<' + '/script>\n</body>\n</html>');
+
+  const html = parts.join('');
+  const blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (className || '任務紀錄').replace(/[\\/:*?"<>|]/g, '_') + '.html';
+  a.click();
+}
+
+// ─── popup 背景關閉 ───────────────────────────
+document.getElementById('popupOverlay').addEventListener('click', function(e){ if(e.target===this) closePopup(); });
+document.getElementById('pickOverlay').addEventListener('click', function(e){ if(e.target===this) closePickOverlay(); });
+
+// ─── 初始化 ───────────────────────────────────
+renderTaskSetup();
+buildGrid();
+</script>
+</body>
+</html>

@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>座位點名紀錄表產生器</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+    background: #fce4ec;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+    color: #c2185b;
+    margin-bottom: 16px;
+    font-size: 1.5rem;
+  }
+
+  /* ── 工具列 ── */
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+
+  .toolbar label, .toolbar input, .toolbar button, .toolbar select {
+    font-size: 0.9rem;
+  }
+
+  .toolbar input[type="number"] {
+    width: 55px;
+    padding: 5px 6px;
+    border: 1px solid #f48fb1;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .toolbar label { align-self: center; color: #555; }
+
+  button {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity .2s;
+  }
+  button:hover { opacity: .82; }
+
+  .btn-load   { background: #f48fb1; color: #fff; }
+  .btn-auto   { background: #ba68c8; color: #fff; }
+  .btn-clear  { background: #90caf9; color: #fff; }
+  .btn-reset  { background: #ef9a9a; color: #fff; }
+  .btn-print  { background: #a5d6a7; color: #fff; }
+  .btn-export { background: #ffcc80; color: #555; }
+
+  input[type="file"] { display: none; }
+
+  /* ── 統計列 ── */
+  .stats {
+    text-align: center;
+    font-size: .88rem;
+    color: #666;
+    margin-bottom: 14px;
+  }
+  .stats span { margin: 0 8px; }
+
+  /* ── 教室容器 ── */
+  .classroom-wrap {
+    background: #fff9fb;
+    border-radius: 18px;
+    padding: 18px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    box-shadow: 0 4px 18px rgba(194,24,91,.1);
+  }
+
+  .board-label {
+    text-align: center;
+    background: #ce93d8;
+    color: #fff;
+    border-radius: 12px;
+    padding: 8px 0;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+    letter-spacing: .1em;
+  }
+
+  .bulletin-label {
+    text-align: center;
+    background: #f8bbd0;
+    color: #c2185b;
+    border-radius: 12px;
+    padding: 6px 0;
+    font-size: .9rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+    letter-spacing: .1em;
+  }
+
+  /* ── 座位區（含側標） ── */
+  .seat-area {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .side-label {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    background: #ffe082;
+    color: #795548;
+    border-radius: 10px;
+    padding: 10px 6px;
+    font-size: .85rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+  }
+
+  /* ── 座位格線 ── */
+  .grid {
+    flex: 1;
+    display: grid;
+    gap: 8px;
+  }
+
+  /* ── 單一座位 ── */
+  .seat {
+    background: #fff;
+    border: 2px dashed #e0e0e0;
+    border-radius: 12px;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: border-color .2s, background .2s;
+    padding: 6px;
+    user-select: none;
+  }
+
+  .seat.empty-slot {
+    color: #ccc;
+    font-size: .9rem;
+    border-color: #eee;
+  }
+  .seat.empty-slot:hover { border-color: #f48fb1; }
+
+  .seat.occupied {
+    border: 2px solid #f48fb1;
+    background: #fff0f5;
+  }
+
+  .seat.present  { background: #e8f5e9; border-color: #81c784; }
+  .seat.absent   { background: #ffeaea; border-color: #ef9a9a; }
+  .seat.late     { background: #fff8e1; border-color: #ffd54f; }
+  .seat.leave    { background: #e3f2fd; border-color: #90caf9; }
+
+  .seat-name {
+    font-size: .85rem;
+    font-weight: bold;
+    color: #555;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .seat-num {
+    position: absolute;
+    top: 4px;
+    left: 7px;
+    font-size: .65rem;
+    color: #bbb;
+  }
+
+  .seat-status {
+    font-size: .72rem;
+    margin-top: 3px;
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-weight: bold;
+  }
+  .present .seat-status  { color: #388e3c; background: #c8e6c9; }
+  .absent  .seat-status  { color: #c62828; background: #ffcdd2; }
+  .late    .seat-status  { color: #f57f17; background: #fff9c4; }
+  .leave   .seat-status  { color: #1565c0; background: #bbdefb; }
+
+  /* ── 狀態選單 popup ── */
+  .popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.25);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .popup-overlay.show { display: flex; }
+
+  .popup {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 30px;
+    min-width: 240px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.18);
+    text-align: center;
+  }
+  .popup h3 { color: #c2185b; margin-bottom: 16px; font-size: 1.1rem; }
+  .popup-btns { display: flex; flex-direction: column; gap: 10px; }
+  .popup-btns button { font-size: .95rem; padding: 9px; }
+  .btn-present { background: #a5d6a7; color: #2e7d32; }
+  .btn-absent  { background: #ef9a9a; color: #b71c1c; }
+  .btn-late    { background: #ffe082; color: #f57f17; }
+  .btn-leave   { background: #90caf9; color: #1565c0; }
+  .btn-unset   { background: #e0e0e0; color: #555; }
+  .btn-swap    { background: #ce93d8; color: #6a1b9a; }
+  .btn-remove  { background: #ffccbc; color: #bf360c; }
+  .btn-cancel  { background: #f5f5f5; color: #555; margin-top: 4px; }
+
+  /* ── 名單 panel ── */
+  .panel-row {
+    display: flex;
+    gap: 16px;
+    max-width: 900px;
+    margin: 16px auto 0;
+    flex-wrap: wrap;
+  }
+  .name-pool {
+    flex: 1;
+    min-width: 200px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  }
+  .name-pool h3 { color: #c2185b; font-size: .95rem; margin-bottom: 8px; }
+
+  .name-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .name-tag {
+    background: #f8bbd0;
+    color: #880e4f;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: .82rem;
+    cursor: grab;
+    transition: background .2s;
+  }
+  .name-tag:hover { background: #f48fb1; }
+  .name-tag.placed { background: #e0e0e0; color: #aaa; cursor: default; }
+
+  /* ── 格線設定 ── */
+  .grid-settings {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  }
+  .grid-settings label { font-size: .88rem; color: #555; }
+  .grid-settings input { width: 50px; }
+
+  /* ── 列印 ── */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .toolbar, .panel-row, .stats { display: none; }
+    .classroom-wrap { box-shadow: none; max-width: 100%; }
+    .seat { min-height: 60px; }
+    button { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>📋 座位點名紀錄表產生器</h1>
+
+<!-- 工具列 -->
+<div class="toolbar">
+  <button class="btn-load" onclick="document.getElementById('fileInput').click()">📂 載入名單</button>
+  <input type="file" id="fileInput" accept=".txt,.csv" onchange="loadFile(event)">
+  <button class="btn-auto" onclick="autoAssign()">🎲 自動分配座位</button>
+  <button class="btn-clear" onclick="clearAllStatus()">🧹 清除出缺席</button>
+  <button class="btn-reset" onclick="resetAll()">🔄 重置全部</button>
+  <button class="btn-print" onclick="window.print()">🖨️ 列印</button>
+  <button class="btn-export" onclick="exportCSV()">📊 匯出 CSV</button>
+  <button class="btn-export" style="background:#80cbc4;color:#fff" onclick="exportAttendanceHTML()">💾 儲存點名單</button>
+</div>
+
+<!-- 格線設定 -->
+<div class="grid-settings" style="max-width:900px;margin:0 auto 14px;">
+  <label>列數（排）：</label>
+  <input type="number" id="rowCount" value="8" min="1" max="20">
+  <label>欄數（行）：</label>
+  <input type="number" id="colCount" value="4" min="1" max="12">
+  <button class="btn-auto" style="background:#78909c" onclick="rebuildGrid()">套用格線</button>
+</div>
+
+<!-- 統計列 -->
+<div class="stats">
+  <span>👥 已配置：<b id="statPlaced">0</b></span>
+  <span>✅ 到課：<b id="statPresent">0</b></span>
+  <span>❌ 缺席：<b id="statAbsent">0</b></span>
+  <span>⏰ 遲到：<b id="statLate">0</b></span>
+  <span>📝 請假：<b id="statLeave">0</b></span>
+</div>
+
+<!-- 教室 -->
+<div class="classroom-wrap">
+  <div class="bulletin-label">教室後方 ／ 布告欄</div>
+  <div class="seat-area">
+    <div class="side-label" id="sideBack">後門</div>
+    <div class="grid" id="seatGrid"></div>
+    <div style="width:32px"></div><!-- 右側佔位 -->
+  </div>
+  <div class="seat-area" style="margin-top:0">
+    <div class="side-label" id="sideFront" style="visibility:hidden">前門</div>
+    <div style="flex:1"></div>
+  </div>
+  <!-- 前門標籤另外處理，與底部對齊 -->
+  <div class="board-label" style="margin-top:12px">講台 ／ 黑板</div>
+</div>
+
+<!-- 前門側標（用絕對定位不易，改用 flex 包覆） -->
+
+<!-- 名單 & 備注 -->
+<div class="panel-row">
+  <div class="name-pool">
+    <h3>📋 待分配名單</h3>
+    <div class="name-list" id="namePool"></div>
+  </div>
+  <div class="name-pool" style="max-width:320px">
+    <h3>💡 操作說明</h3>
+    <div style="font-size:.82rem;color:#666;line-height:1.7">
+      1. 點選「載入名單」讀取 .txt / .csv（每行一個姓名）<br>
+      2. 調整列數 / 欄數後按「套用格線」<br>
+      3. 按「自動分配座位」隨機排位<br>
+      4. 點任意座位可手動設定出缺席狀態<br>
+      5. 點空座位可從名單中選取學生<br>
+      6. 可交換兩格座位順序<br>
+      7. 完成後列印或匯出 CSV
+    </div>
+  </div>
+</div>
+
+<!-- 狀態 popup -->
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup">
+    <h3 id="popupTitle">座位操作</h3>
+    <div class="popup-btns" id="popupBtns"></div>
+  </div>
+</div>
+
+<!-- 選人 popup -->
+<div class="popup-overlay" id="pickOverlay">
+  <div class="popup" style="min-width:280px">
+    <h3>選擇學生</h3>
+    <div class="name-list" id="pickList" style="max-height:260px;overflow-y:auto;justify-content:center"></div>
+    <button class="btn-cancel" style="margin-top:12px;width:100%" onclick="closePickOverlay()">取消</button>
+  </div>
+</div>
+
+<script>
+// ─── 狀態 ───────────────────────────────────────
+let rows = 8, cols = 4;
+let seats = [];       // seats[i] = { name:'', status:'' }
+let names = [];       // 全部名單
+let swapPending = -1; // 交換中的座位 index
+let currentSeatIdx = -1;
+
+// ─── 初始化格線 ─────────────────────────────────
+function buildGrid() {
+  const total = rows * cols;
+  // 保留現有資料
+  const old = seats.slice();
+  seats = Array.from({length: total}, (_, i) => old[i] || { name: '', status: '' });
+  renderGrid();
+}
+
+function rebuildGrid() {
+  rows = parseInt(document.getElementById('rowCount').value) || 8;
+  cols = parseInt(document.getElementById('colCount').value) || 4;
+  buildGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('seatGrid');
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  grid.innerHTML = '';
+  seats.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'seat' + (s.name ? ` occupied ${s.status}` : ' empty-slot');
+    div.dataset.idx = i;
+    div.innerHTML = `
+      <span class="seat-num">${i + 1}</span>
+      ${s.name
+        ? `<span class="seat-name">${s.name}</span>
+           <span class="seat-status">${statusLabel(s.status)}</span>`
+        : `<span style="font-size:1.1rem;color:#ddd">空</span>`}
+    `;
+    div.addEventListener('click', () => onSeatClick(i));
+    grid.appendChild(div);
+  });
+  updateStats();
+  updateNamePool();
+}
+
+function statusLabel(s) {
+  return { present:'✅ 到課', absent:'❌ 缺席', late:'⏰ 遲到', leave:'📝 請假', '':'－' }[s] || '－';
+}
+
+// ─── 點擊座位 ─────────────────────────────────
+function onSeatClick(idx) {
+  if (swapPending !== -1) {
+    doSwap(swapPending, idx);
+    swapPending = -1;
+    renderGrid();
+    return;
+  }
+  currentSeatIdx = idx;
+  const s = seats[idx];
+  if (s.name) openStatusPopup(idx);
+  else openPickOverlay(idx);
+}
+
+// ─── 有人座位 popup ───────────────────────────
+function openStatusPopup(idx) {
+  const s = seats[idx];
+  document.getElementById('popupTitle').textContent = `座位 ${idx+1}：${s.name}`;
+  const btns = document.getElementById('popupBtns');
+  btns.innerHTML = `
+    <button class="btn-present" onclick="setStatus(${idx},'present')">✅ 到課</button>
+    <button class="btn-absent"  onclick="setStatus(${idx},'absent')">❌ 缺席</button>
+    <button class="btn-late"    onclick="setStatus(${idx},'late')">⏰ 遲到</button>
+    <button class="btn-leave"   onclick="setStatus(${idx},'leave')">📝 請假</button>
+    <button class="btn-unset"   onclick="setStatus(${idx},'')">－ 清除狀態</button>
+    <button class="btn-swap"    onclick="startSwap(${idx})">🔀 交換座位</button>
+    <button class="btn-remove"  onclick="removeSeat(${idx})">🗑️ 移除學生</button>
+    <button class="btn-cancel"  onclick="closePopup()">取消</button>
+  `;
+  document.getElementById('popupOverlay').classList.add('show');
+}
+
+function setStatus(idx, status) {
+  seats[idx].status = status;
+  closePopup();
+  renderGrid();
+}
+
+function startSwap(idx) {
+  swapPending = idx;
+  closePopup();
+  alert(`已選取「${seats[idx].name}」，請點選要交換的目標座位`);
+}
+
+function doSwap(a, b) {
+  [seats[a], seats[b]] = [seats[b], seats[a]];
+}
+
+function removeSeat(idx) {
+  seats[idx] = { name: '', status: '' };
+  closePopup();
+  renderGrid();
+}
+
+function closePopup() {
+  document.getElementById('popupOverlay').classList.remove('show');
+}
+
+// ─── 空座位：選人 ────────────────────────────
+function openPickOverlay(idx) {
+  currentSeatIdx = idx;
+  const unplaced = names.filter(n => !seats.some(s => s.name === n));
+  const list = document.getElementById('pickList');
+  if (unplaced.length === 0) {
+    list.innerHTML = '<span style="color:#aaa;font-size:.85rem">所有學生均已分配座位</span>';
+  } else {
+    list.innerHTML = unplaced.map(n =>
+      `<span class="name-tag" onclick="assignName('${n.replace(/'/g,"\\'")}', ${idx})">${n}</span>`
+    ).join('');
+  }
+  document.getElementById('pickOverlay').classList.add('show');
+}
+
+function assignName(name, idx) {
+  seats[idx] = { name, status: '' };
+  closePickOverlay();
+  renderGrid();
+}
+
+function closePickOverlay() {
+  document.getElementById('pickOverlay').classList.remove('show');
+}
+
+// ─── 載入名單 ─────────────────────────────────
+function loadFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    names = text.split(/\r?\n/)
+      .map(l => l.split(/[,，\t]/)[0].trim())
+      .filter(Boolean);
+    alert(`已載入 ${names.length} 位學生`);
+    renderGrid();
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
+
+// ─── 自動分配 ─────────────────────────────────
+function autoAssign() {
+  if (names.length === 0) { alert('請先載入名單！'); return; }
+  const unplaced = names.filter(n => !seats.some(s => s.name === n));
+  const empty = seats.reduce((acc, s, i) => { if (!s.name) acc.push(i); return acc; }, []);
+  // 隨機打亂名單
+  const shuffled = [...unplaced].sort(() => Math.random() - .5);
+  const count = Math.min(shuffled.length, empty.length);
+  for (let i = 0; i < count; i++) {
+    seats[empty[i]] = { name: shuffled[i], status: '' };
+  }
+  renderGrid();
+}
+
+// ─── 清除出缺席 ──────────────────────────────
+function clearAllStatus() {
+  seats.forEach(s => { s.status = ''; });
+  renderGrid();
+}
+
+// ─── 重置全部 ─────────────────────────────────
+function resetAll() {
+  if (!confirm('確定要清除所有座位安排嗎？')) return;
+  seats = seats.map(() => ({ name: '', status: '' }));
+  renderGrid();
+}
+
+// ─── 名單池 ───────────────────────────────────
+function updateNamePool() {
+  const pool = document.getElementById('namePool');
+  if (names.length === 0) {
+    pool.innerHTML = '<span style="color:#aaa;font-size:.82rem">尚未載入名單</span>';
+    return;
+  }
+  pool.innerHTML = names.map(n => {
+    const placed = seats.some(s => s.name === n);
+    return `<span class="name-tag ${placed ? 'placed' : ''}">${n}</span>`;
+  }).join('');
+}
+
+// ─── 統計 ─────────────────────────────────────
+function updateStats() {
+  const placed  = seats.filter(s => s.name).length;
+  const present = seats.filter(s => s.status === 'present').length;
+  const absent  = seats.filter(s => s.status === 'absent').length;
+  const late    = seats.filter(s => s.status === 'late').length;
+  const leave   = seats.filter(s => s.status === 'leave').length;
+  document.getElementById('statPlaced').textContent  = placed;
+  document.getElementById('statPresent').textContent = present;
+  document.getElementById('statAbsent').textContent  = absent;
+  document.getElementById('statLate').textContent    = late;
+  document.getElementById('statLeave').textContent   = leave;
+}
+
+// ─── 匯出 CSV ─────────────────────────────────
+function exportCSV() {
+  const header = '座位,姓名,狀態\n';
+  const body = seats.map((s, i) =>
+    `${i+1},${s.name || '(空)'},${statusLabel(s.status)}`
+  ).join('\n');
+  const blob = new Blob(['﻿' + header + body], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `座位點名_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')}.csv`;
+  a.click();
+}
+
+// ─── 匯出點名單 HTML ──────────────────────────
+function exportAttendanceHTML() {
+  const className = prompt('請輸入班級名稱（將顯示在標題）：', '');
+  if (className === null) return;
+
+  const seatsJSON = JSON.stringify(seats);
+  const rowsVal = rows, colsVal = cols;
+
+  const html = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${className ? className + ' ' : ''}點名單</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI','Microsoft JhengHei',sans-serif; background:#fce4ec; min-height:100vh; padding:20px; }
+h1 { text-align:center; color:#c2185b; margin-bottom:8px; font-size:1.4rem; }
+.date-row { text-align:center; color:#888; font-size:.85rem; margin-bottom:14px; }
+.toolbar { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:14px; }
+button { padding:7px 14px; border:none; border-radius:10px; cursor:pointer; font-weight:bold; transition:opacity .2s; }
+button:hover { opacity:.82; }
+.stats { text-align:center; font-size:.88rem; color:#666; margin-bottom:14px; }
+.stats span { margin:0 8px; }
+.classroom-wrap { background:#fff9fb; border-radius:18px; padding:18px 24px; max-width:900px; margin:0 auto; box-shadow:0 4px 18px rgba(194,24,91,.1); }
+.board-label { text-align:center; background:#ce93d8; color:#fff; border-radius:12px; padding:8px 0; font-size:1rem; font-weight:bold; margin-bottom:12px; letter-spacing:.1em; }
+.bulletin-label { text-align:center; background:#f8bbd0; color:#c2185b; border-radius:12px; padding:6px 0; font-size:.9rem; font-weight:bold; margin-bottom:12px; letter-spacing:.1em; }
+.seat-area { display:flex; align-items:stretch; gap:8px; }
+.side-label { writing-mode:vertical-rl; text-orientation:upright; background:#ffe082; color:#795548; border-radius:10px; padding:10px 6px; font-size:.85rem; font-weight:bold; display:flex; align-items:center; justify-content:center; min-width:32px; }
+.grid { flex:1; display:grid; gap:8px; }
+.seat { background:#fff; border:2px dashed #e0e0e0; border-radius:12px; min-height:72px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; position:relative; transition:border-color .2s,background .2s; padding:6px; user-select:none; }
+.seat.empty-slot { color:#ccc; font-size:.9rem; border-color:#eee; }
+.seat.occupied { border:2px solid #f48fb1; background:#fff0f5; }
+.seat.present { background:#e8f5e9; border-color:#81c784; }
+.seat.absent  { background:#ffeaea; border-color:#ef9a9a; }
+.seat.late    { background:#fff8e1; border-color:#ffd54f; }
+.seat.leave   { background:#e3f2fd; border-color:#90caf9; }
+.seat-name { font-size:.85rem; font-weight:bold; color:#555; text-align:center; line-height:1.3; }
+.seat-num { position:absolute; top:4px; left:7px; font-size:.65rem; color:#bbb; }
+.seat-status { font-size:.72rem; margin-top:3px; border-radius:6px; padding:1px 6px; font-weight:bold; }
+.present .seat-status { color:#388e3c; background:#c8e6c9; }
+.absent  .seat-status { color:#c62828; background:#ffcdd2; }
+.late    .seat-status { color:#f57f17; background:#fff9c4; }
+.leave   .seat-status { color:#1565c0; background:#bbdefb; }
+.popup-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:100; align-items:center; justify-content:center; }
+.popup-overlay.show { display:flex; }
+.popup { background:#fff; border-radius:16px; padding:24px 30px; min-width:240px; box-shadow:0 8px 32px rgba(0,0,0,.18); text-align:center; }
+.popup h3 { color:#c2185b; margin-bottom:16px; font-size:1.1rem; }
+.popup-btns { display:flex; flex-direction:column; gap:10px; }
+.popup-btns button { font-size:.95rem; padding:9px; }
+.btn-present { background:#a5d6a7; color:#2e7d32; }
+.btn-absent  { background:#ef9a9a; color:#b71c1c; }
+.btn-late    { background:#ffe082; color:#f57f17; }
+.btn-leave   { background:#90caf9; color:#1565c0; }
+.btn-unset   { background:#e0e0e0; color:#555; }
+.btn-swap    { background:#ce93d8; color:#6a1b9a; }
+.btn-cancel  { background:#f5f5f5; color:#555; margin-top:4px; }
+@media print {
+  body { background:#fff; padding:0; }
+  .toolbar, .stats { display:none; }
+  .classroom-wrap { box-shadow:none; max-width:100%; }
+  .seat { min-height:60px; }
+}
+</style>
+</head>
+<body>
+<h1>📋 ${className ? className + ' ' : ''}點名單</h1>
+<div class="date-row" id="dateRow"></div>
+<div class="toolbar">
+  <button style="background:#ef9a9a;color:#fff" onclick="clearAllStatus()">🧹 清除出缺席</button>
+  <button style="background:#a5d6a7;color:#fff" onclick="setAll('present')">✅ 全部到課</button>
+  <button style="background:#90caf9;color:#fff" onclick="window.print()">🖨️ 列印</button>
+  <button style="background:#ffcc80;color:#555" onclick="exportCSV()">📊 匯出 CSV</button>
+</div>
+<div class="stats">
+  <span>👥 總人數：<b id="statPlaced">0</b></span>
+  <span>✅ 到課：<b id="statPresent">0</b></span>
+  <span>❌ 缺席：<b id="statAbsent">0</b></span>
+  <span>⏰ 遲到：<b id="statLate">0</b></span>
+  <span>📝 請假：<b id="statLeave">0</b></span>
+</div>
+<div class="classroom-wrap">
+  <div class="bulletin-label">教室後方 ／ 布告欄</div>
+  <div class="seat-area">
+    <div class="side-label">後門</div>
+    <div class="grid" id="seatGrid"></div>
+    <div style="width:32px"></div>
+  </div>
+  <div class="board-label" style="margin-top:12px">講台 ／ 黑板</div>
+</div>
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup">
+    <h3 id="popupTitle">座位操作</h3>
+    <div class="popup-btns" id="popupBtns"></div>
+  </div>
+</div>
+
+<script>
+var rows = ${rowsVal}, cols = ${colsVal};
+var seats = ${seatsJSON};
+var swapPending = -1;
+
+document.getElementById('dateRow').textContent = '日期：' + new Date().toLocaleDateString('zh-TW', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
+
+function statusLabel(s) {
+  return {present:'✅ 到課',absent:'❌ 缺席',late:'⏰ 遲到',leave:'📝 請假','':'－'}[s]||'－';
+}
+function renderGrid() {
+  var grid = document.getElementById('seatGrid');
+  grid.style.gridTemplateColumns = 'repeat('+cols+', 1fr)';
+  grid.innerHTML = '';
+  seats.forEach(function(s, i) {
+    var div = document.createElement('div');
+    div.className = 'seat' + (s.name ? ' occupied ' + s.status : ' empty-slot');
+    div.dataset.idx = i;
+    div.innerHTML = '<span class="seat-num">'+(i+1)+'</span>'
+      + (s.name
+        ? '<span class="seat-name">'+s.name+'</span><span class="seat-status">'+statusLabel(s.status)+'</span>'
+        : '<span style="font-size:1.1rem;color:#ddd">空</span>');
+    div.addEventListener('click', function(){ onSeatClick(i); });
+    grid.appendChild(div);
+  });
+  updateStats();
+}
+function onSeatClick(idx) {
+  if (swapPending !== -1) { doSwap(swapPending, idx); swapPending = -1; renderGrid(); return; }
+  if (!seats[idx].name) return;
+  var s = seats[idx];
+  document.getElementById('popupTitle').textContent = '座位'+(idx+1)+'：'+s.name;
+  document.getElementById('popupBtns').innerHTML =
+    '<button class="btn-present" onclick="setStatus('+idx+',\\'present\\')">✅ 到課</button>'+
+    '<button class="btn-absent"  onclick="setStatus('+idx+',\\'absent\\')">❌ 缺席</button>'+
+    '<button class="btn-late"    onclick="setStatus('+idx+',\\'late\\')">⏰ 遲到</button>'+
+    '<button class="btn-leave"   onclick="setStatus('+idx+',\\'leave\\')">📝 請假</button>'+
+    '<button class="btn-unset"   onclick="setStatus('+idx+',\\'\\')">－ 清除狀態</button>'+
+    '<button class="btn-swap"    onclick="startSwap('+idx+')">🔀 交換座位</button>'+
+    '<button class="btn-cancel"  onclick="closePopup()">取消</button>';
+  document.getElementById('popupOverlay').classList.add('show');
+}
+function setStatus(idx, st) { seats[idx].status = st; closePopup(); renderGrid(); }
+function startSwap(idx) { swapPending = idx; closePopup(); alert('已選取「'+seats[idx].name+'」，請點選目標座位'); }
+function doSwap(a, b) { var t = seats[a]; seats[a] = seats[b]; seats[b] = t; }
+function closePopup() { document.getElementById('popupOverlay').classList.remove('show'); }
+function clearAllStatus() { seats.forEach(function(s){ s.status=''; }); renderGrid(); }
+function setAll(st) { seats.forEach(function(s){ if(s.name) s.status=st; }); renderGrid(); }
+function updateStats() {
+  var placed=0,present=0,absent=0,late=0,leave=0;
+  seats.forEach(function(s){
+    if(s.name){ placed++;
+      if(s.status==='present') present++;
+      else if(s.status==='absent') absent++;
+      else if(s.status==='late') late++;
+      else if(s.status==='leave') leave++;
+    }
+  });
+  document.getElementById('statPlaced').textContent=placed;
+  document.getElementById('statPresent').textContent=present;
+  document.getElementById('statAbsent').textContent=absent;
+  document.getElementById('statLate').textContent=late;
+  document.getElementById('statLeave').textContent=leave;
+}
+function exportCSV() {
+  var header='座位,姓名,狀態\\n';
+  var body=seats.map(function(s,i){ return (i+1)+','+(s.name||'(空)')+','+statusLabel(s.status); }).join('\\n');
+  var blob=new Blob(['\\uFEFF'+header+body],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='點名_'+new Date().toLocaleDateString('zh-TW').replace(/\\//g,'-')+'.csv'; a.click();
+}
+document.getElementById('popupOverlay').addEventListener('click', function(e){ if(e.target===this) closePopup(); });
+renderGrid();
+<\/script>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const safeName = (className || '點名單').replace(/[\\/:*?"<>|]/g, '_');
+  a.download = safeName + '.html';
+  a.click();
+}
+
+// ─── 關閉 overlay 點背景 ─────────────────────
+document.getElementById('popupOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closePopup();
+});
+document.getElementById('pickOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closePickOverlay();
+});
+
+// ─── 初始化 ──────────────────────────────────
+buildGrid();
+</script>
+</body>
+</html>

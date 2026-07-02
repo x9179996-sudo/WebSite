@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 世界盃足球賽 ⚽ 賽程與比數</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<style>
+:root{
+  --bg:#FFF0F5; --bg2:#E3F2FD; --bg3:#F0FFF4; --bg4:#FFFDE7;
+  --text:#4A4A4A; --text2:#5D4037; --muted:#9E8E8E;
+  --accent:#FF8FAB; --accent2:#FFB74D; --mint:#7FD8BE; --sky:#90CAF9;
+  --card:#FFFFFF; --line:#FADADD;
+  --shadow:0 8px 16px rgba(255,182,193,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+img.emoji{height:1.15em;width:1.15em;vertical-align:-0.18em;display:inline-block}
+.team .flag img.emoji{height:1.45rem;width:1.45rem;border-radius:4px}
+html{scroll-behavior:smooth}
+body{
+  font-family:'M PLUS Rounded 1c','Nunito',sans-serif;
+  color:var(--text);line-height:1.6;
+  background:var(--bg);
+  background-image:radial-gradient(rgba(255,143,171,.14) 2px,transparent 2px);
+  background-size:26px 26px;
+  padding-bottom:48px;
+}
+/* ── Header ── */
+header.hero{
+  background:linear-gradient(135deg,#FFD6E0 0%,#E3F2FD 60%,#F0FFF4 100%);
+  border-bottom:3px solid #fff;
+  box-shadow:var(--shadow);
+  padding:22px 16px 14px;text-align:center;
+  border-radius:0 0 28px 28px;
+}
+header.hero h1{
+  font-size:clamp(1.25rem,4.5vw,1.9rem);font-weight:800;color:var(--text2);
+  letter-spacing:.02em;
+}
+header.hero .sub{font-size:.85rem;color:#7a6a60;margin-top:2px}
+.updatebar{
+  display:flex;justify-content:center;align-items:center;gap:8px;
+  font-size:.74rem;color:#8a7a70;margin-top:8px;flex-wrap:wrap;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:#bbb;display:inline-block}
+.dot.ok{background:#7FD8BE;animation:pulse 2s infinite}
+.dot.err{background:#FF8FAB}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.refresh-btn{
+  background:#fff;border:2px solid var(--line);border-radius:50px;
+  padding:2px 12px;font-family:inherit;font-size:.74rem;color:var(--text2);
+  cursor:pointer;transition:transform .2s;
+}
+.refresh-btn:hover{transform:scale(1.07)}
+/* ── Tabs ── */
+nav.tabs{
+  position:sticky;top:0;z-index:50;
+  display:flex;gap:8px;overflow-x:auto;padding:10px 12px;
+  background:rgba(255,240,245,.92);backdrop-filter:blur(8px);
+  scrollbar-width:none;
+}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:0 0 auto;border:3px solid var(--line);background:#fff;color:var(--text2);
+  border-radius:50px;padding:8px 18px;font-family:inherit;font-weight:700;
+  font-size:.9rem;cursor:pointer;transition:transform .15s,background .2s;
+  box-shadow:0 4px 10px rgba(255,182,193,.25);white-space:nowrap;
+}
+.tab:hover{transform:scale(1.05)}
+.tab.active{background:var(--accent);border-color:#fff;color:#fff}
+/* ── Chips ── */
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 14px 4px;scrollbar-width:none;scroll-margin-top:64px}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;border:2px solid var(--line);background:#fff;border-radius:50px;
+  padding:3px 13px;font-size:.78rem;font-family:inherit;color:var(--text2);
+  cursor:pointer;transition:transform .15s;font-weight:500;
+}
+.chip.active{background:var(--accent2);border-color:#fff;color:#fff;font-weight:700}
+.chip:hover{transform:scale(1.06)}
+/* ── Layout ── */
+main{max-width:760px;margin:0 auto;padding:8px 12px}
+section.view{display:none}
+section.view.active{display:block;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.date-head{
+  display:flex;align-items:center;gap:8px;margin:18px 4px 8px;
+  font-weight:800;color:var(--text2);font-size:.95rem;
+}
+.date-head .badge-today{
+  background:var(--accent);color:#fff;border-radius:50px;font-size:.7rem;
+  padding:1px 10px;font-weight:700;
+}
+.date-head::after{content:"";flex:1;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,var(--line),transparent)}
+/* ── Match card ── */
+.match{
+  background:var(--card);border:3px solid var(--line);border-radius:20px;
+  box-shadow:0 5px 12px rgba(255,182,193,.22);
+  padding:10px 14px;margin-bottom:10px;
+  transition:transform .15s;
+}
+.match:hover{transform:scale(1.015)}
+.match.live{border-color:var(--accent);box-shadow:0 5px 14px rgba(255,143,171,.45)}
+.match .meta{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:.72rem;color:var(--muted);margin-bottom:4px;gap:6px;flex-wrap:wrap;
+}
+.tag{
+  background:var(--bg2);border-radius:50px;padding:0 10px;font-weight:700;color:#5b7da0;
+}
+.tag.ko{background:#FFE9CC;color:#a06a1f}
+.live-tag{
+  background:var(--accent);color:#fff;border-radius:50px;padding:0 10px;font-weight:800;
+  animation:pulse 1.4s infinite;
+}
+.row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.team{display:flex;align-items:center;gap:7px;min-width:0;font-weight:700;color:var(--text2)}
+.team.right{flex-direction:row-reverse;text-align:right}
+.team .flag{font-size:1.45rem;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.08))}
+.team .nm{font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team.tbd .nm{color:#b6a8a0;font-weight:500;font-size:.8rem;white-space:normal;line-height:1.25}
+.team.winner .nm{color:#e85d82}
+.score{
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:1.25rem;color:var(--text2);
+  background:var(--bg4);border:2px solid #F5E6A8;border-radius:14px;
+  padding:2px 12px;white-space:nowrap;
+}
+.score.t{background:var(--bg2);border-color:#cfe5fa;font-size:.86rem;font-weight:700;color:#5b7da0}
+.pk{display:block;text-align:center;font-size:.66rem;color:var(--muted);margin-top:2px}
+.venue{font-size:.7rem;color:var(--muted);text-align:center;margin-top:4px}
+/* ── Standings ── */
+.group-card{
+  background:var(--card);border:3px solid var(--line);border-radius:22px;
+  box-shadow:0 5px 12px rgba(255,182,193,.22);padding:14px 14px 8px;margin-bottom:14px;
+}
+.group-card h3{color:var(--text2);font-size:1rem;margin-bottom:6px}
+table.standings{width:100%;border-collapse:collapse;font-size:.82rem}
+table.standings th{color:var(--muted);font-weight:700;font-size:.7rem;padding:3px 4px;text-align:center}
+table.standings th:first-child{text-align:left}
+table.standings td{padding:5px 4px;text-align:center;border-top:2px dashed #FBE9EE}
+table.standings td.tm{text-align:left;font-weight:700;color:var(--text2);white-space:nowrap}
+table.standings tr.q td{background:linear-gradient(90deg,rgba(127,216,190,.18),transparent)}
+table.standings tr.q3 td{background:linear-gradient(90deg,rgba(255,183,77,.16),transparent)}
+.pos-dot{display:inline-block;width:17px;height:17px;border-radius:50%;background:var(--bg2);
+  color:#5b7da0;font-size:.66rem;font-weight:800;line-height:17px;text-align:center;margin-right:4px}
+.legend{font-size:.68rem;color:var(--muted);margin:2px 4px 14px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin:0 3px -1px 8px}
+/* ── Bracket ── */
+.round-title{
+  text-align:center;font-weight:800;color:var(--text2);margin:20px 0 10px;font-size:1rem;
+}
+.round-title span{background:var(--bg2);border-radius:50px;padding:4px 18px;border:2px solid #fff;
+  box-shadow:0 3px 8px rgba(144,202,249,.4)}
+/* ── Prediction ── */
+.pred-intro{
+  background:var(--bg3);border:3px solid #CDEFD8;border-radius:20px;padding:12px 16px;
+  font-size:.82rem;color:#4a6a55;margin:10px 0 14px;
+}
+.pred-progress{font-weight:800;color:#2f8a64}
+.pick-row{display:flex;gap:6px;margin-top:8px}
+.pick-btn{
+  flex:1;border:2px solid var(--line);background:#fff;border-radius:50px;
+  font-family:inherit;font-size:.74rem;font-weight:700;color:var(--text2);
+  padding:5px 0;cursor:pointer;transition:transform .12s,background .15s;
+}
+.pick-btn:hover{transform:scale(1.05)}
+.pick-btn.sel{background:var(--accent);border-color:#fff;color:#fff}
+.pick-btn.lock{background:#EFEAE6;color:#b0a49c;cursor:default;border-color:#E5DDD6}
+.ko-pick .team{cursor:pointer;border-radius:12px;padding:3px 6px;transition:background .15s}
+.ko-pick .team:hover{background:var(--bg)}
+.ko-pick .team.sel{background:#FFE3EB;outline:2px solid var(--accent)}
+.ko-pick .team.tbd{cursor:default}
+.champ-card{
+  text-align:center;background:linear-gradient(135deg,#FFFDE7,#FFE9F0);
+  border:3px solid #F8D7A0;border-radius:26px;padding:20px;margin:16px 0;
+  box-shadow:0 8px 18px rgba(255,183,77,.35);animation:bounce-in .5s ease;
+}
+@keyframes bounce-in{0%{transform:scale(.85);opacity:0}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+.champ-card .cup{font-size:2.4rem}
+.champ-card .who{font-size:1.3rem;font-weight:800;color:var(--text2);margin-top:4px}
+.btnbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.kawaii-btn{
+  background:var(--accent);color:#fff;border:none;border-radius:50px;
+  padding:9px 20px;font-size:.85rem;font-family:inherit;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 12px rgba(255,143,171,.4);transition:transform .2s;
+}
+.kawaii-btn:hover{transform:scale(1.07)}
+.kawaii-btn.alt{background:var(--accent2);box-shadow:0 4px 12px rgba(255,183,77,.4)}
+.kawaii-btn.ghost{background:#fff;color:var(--text2);border:2px solid var(--line)}
+.note{font-size:.7rem;color:var(--muted);margin:6px 4px 18px}
+footer{
+  text-align:center;font-size:.7rem;color:#b6a0a8;padding:26px 16px 10px;
+}
+.empty{
+  text-align:center;color:var(--muted);font-size:.85rem;padding:30px 10px;
+}
+@media (min-width:640px){
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid2 .group-card{margin-bottom:0}
+  .team .nm{font-size:1rem}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>⚽ 2026 世界盃足球賽 🏆</h1>
+  <div class="sub">美國・加拿大・墨西哥 ｜ 6/11 – 7/19 ｜ 48 隊 104 場</div>
+  <div class="updatebar">
+    <span class="dot" id="net-dot"></span>
+    <span id="update-text">資料載入中…</span>
+    <button class="refresh-btn" onclick="fetchData(true)">🔄 立即更新</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-view="schedule">📅 賽程</button>
+  <button class="tab" data-view="groups">📊 小組積分</button>
+  <button class="tab" data-view="bracket">🏆 淘汰賽</button>
+  <button class="tab" data-view="predict">🔮 我的預測</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-schedule">
+    <div class="chips" id="sched-chips"></div>
+    <div id="sched-list"></div>
+  </section>
+
+  <section class="view" id="view-groups">
+    <p class="legend">
+      <i style="background:rgba(127,216,190,.6)"></i>前兩名晉級
+      <i style="background:rgba(255,183,77,.55)"></i>第三名（成績前 8 名晉級）
+      ｜排序：積分 → 淨球 → 進球
+    </p>
+    <div class="grid2" id="groups-list"></div>
+  </section>
+
+  <section class="view" id="view-bracket">
+    <p class="legend" style="margin-top:10px">小組賽結束後，晉級隊伍與比數將自動帶入 ✨</p>
+    <div class="chips" id="bracket-chips"></div>
+    <div id="bracket-list"></div>
+  </section>
+
+  <section class="view" id="view-predict">
+    <div class="pred-intro">
+      🔮 點選每場小組賽的勝負，系統會自動算出晉級隊伍與淘汰賽對戰；再到下方點選淘汰賽勝隊，一路預測到冠軍！
+      已開踢的比賽會以<b>真實結果</b>計算並鎖定。預測會自動儲存在這台裝置上。
+      <div class="pred-progress" id="pred-progress"></div>
+    </div>
+    <div class="btnbar">
+      <button class="kawaii-btn alt" onclick="autoFill()">✨ 依實力快速填滿</button>
+      <button class="kawaii-btn ghost" onclick="clearPred()">🧹 清除我的預測</button>
+      <button class="kawaii-btn ghost" onclick="scrollToKO()">⬇️ 跳到淘汰賽預測</button>
+    </div>
+    <div id="pred-groups"></div>
+    <div class="chips" id="pred-bracket-chips"></div>
+    <div id="pred-bracket"></div>
+  </section>
+</main>
+
+<footer>
+  資料來源：openfootball/worldcup.json（公開資料，賽後自動更新比數）<br>
+  時間均已換算為您裝置的時區 🌙 比分以官方公布為準
+</footer>
+
+<script>
+"use strict";
+/* ───────────────────────── 資料區 ───────────────────────── */
+const DATA_URL = "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json";
+/* 主要比分來源：ESPN 公開計分板（含進行中比賽的即時比分，免金鑰） */
+const ESPN_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260610-20260720&limit=300";
+
+/* ESPN 隊名 → 本站隊名 */
+const ESPN_NAME = {
+  "Czechia":"Czech Republic","United States":"USA","USA":"USA",
+  "Bosnia-Herzegovina":"Bosnia and Herzegovina","Bosnia and Herzegovina":"Bosnia and Herzegovina",
+  "Côte d'Ivoire":"Ivory Coast","Türkiye":"Turkey","Cabo Verde":"Cape Verde",
+  "DR Congo":"DR Congo","Democratic Republic of the Congo":"DR Congo","Congo DR":"DR Congo",
+  "Korea Republic":"South Korea","IR Iran":"Iran"
+};
+
+/* 附加賽結果（2026/3/31 確定）：佔位名稱 → 真實隊伍 */
+const PATH_MAP = {
+  "UEFA Path A winner":"Bosnia and Herzegovina",
+  "UEFA Path B winner":"Sweden",
+  "UEFA Path C winner":"Turkey",
+  "UEFA Path D winner":"Czech Republic",
+  "IC Path 1 winner":"DR Congo",
+  "IC Path 2 winner":"Iraq",
+  "Bosnia-Herzegovina":"Bosnia and Herzegovina",
+  "Côte d'Ivoire":"Ivory Coast",
+  "Korea Republic":"South Korea",
+  "Czechia":"Czech Republic",
+  "United States":"USA",
+  "Türkiye":"Turkey",
+  "Congo DR":"DR Congo"
+};
+
+/* 48 強：中文名、旗幟、實力序（約略 FIFA 排名，數字越小越強） */
+const TEAMS = {
+  "Mexico":["墨西哥","🇲🇽",14],"South Africa":["南非","🇿🇦",40],"South Korea":["南韓","🇰🇷",22],"Czech Republic":["捷克","🇨🇿",29],
+  "Canada":["加拿大","🇨🇦",26],"Bosnia and Herzegovina":["波士尼亞","🇧🇦",42],"Qatar":["卡達","🇶🇦",37],"Switzerland":["瑞士","🇨🇭",16],
+  "Brazil":["巴西","🇧🇷",5],"Morocco":["摩洛哥","🇲🇦",11],"Haiti":["海地","🇭🇹",46],"Scotland":["蘇格蘭","🏴󠁧󠁢󠁳󠁣󠁴󠁿",32],
+  "USA":["美國","🇺🇸",15],"Paraguay":["巴拉圭","🇵🇾",33],"Australia":["澳洲","🇦🇺",25],"Turkey":["土耳其","🇹🇷",27],
+  "Germany":["德國","🇩🇪",9],"Curaçao":["古拉索","🇨🇼",45],"Ivory Coast":["象牙海岸","🇨🇮",35],"Ecuador":["厄瓜多","🇪🇨",23],
+  "Netherlands":["荷蘭","🇳🇱",7],"Japan":["日本","🇯🇵",17],"Sweden":["瑞典","🇸🇪",28],"Tunisia":["突尼西亞","🇹🇳",34],
+  "Belgium":["比利時","🇧🇪",8],"Egypt":["埃及","🇪🇬",30],"Iran":["伊朗","🇮🇷",19],"New Zealand":["紐西蘭","🇳🇿",43],
+  "Spain":["西班牙","🇪🇸",1],"Cape Verde":["維德角","🇨🇻",44],"Saudi Arabia":["沙烏地阿拉伯","🇸🇦",38],"Uruguay":["烏拉圭","🇺🇾",13],
+  "France":["法國","🇫🇷",3],"Senegal":["塞內加爾","🇸🇳",18],"Iraq":["伊拉克","🇮🇶",39],"Norway":["挪威","🇳🇴",24],
+  "Argentina":["阿根廷","🇦🇷",2],"Algeria":["阿爾及利亞","🇩🇿",31],"Austria":["奧地利","🇦🇹",21],"Jordan":["約旦","🇯🇴",47],
+  "Portugal":["葡萄牙","🇵🇹",6],"DR Congo":["民主剛果","🇨🇩",48],"Uzbekistan":["烏茲別克","🇺🇿",36],"Colombia":["哥倫比亞","🇨🇴",12],
+  "England":["英格蘭","🏴󠁧󠁢󠁥󠁮󠁧󠁿",4],"Croatia":["克羅埃西亞","🇭🇷",10],"Ghana":["迦納","🇬🇭",41],"Panama":["巴拿馬","🇵🇦",20]
+};
+
+const VENUES = {
+  "Mexico City":"墨西哥城","Guadalajara (Zapopan)":"瓜達拉哈拉","Monterrey (Guadalupe)":"蒙特雷",
+  "Atlanta":"亞特蘭大","Toronto":"多倫多","San Francisco Bay Area (Santa Clara)":"舊金山灣區",
+  "Los Angeles (Inglewood)":"洛杉磯","Vancouver":"溫哥華","Seattle":"西雅圖",
+  "New York/New Jersey (East Rutherford)":"紐約／紐澤西","Boston (Foxborough)":"波士頓",
+  "Philadelphia":"費城","Houston":"休士頓","Kansas City":"堪薩斯城",
+  "Dallas (Arlington)":"達拉斯","Miami (Miami Gardens)":"邁阿密"
+};
+
+const ROUND_ZH = {
+  "Round of 32":"32 強","Round of 16":"16 強","Quarter-final":"8 強（半準決賽）",
+  "Semi-final":"4 強（準決賽）","Match for third place":"季軍戰","Final":"🏆 決賽"
+};
+
+/* 32 強籤表中「小組第三」槽位可來自的小組 */
+const THIRD_SLOTS = {
+  74:["A","B","C","D","F"], 77:["C","D","F","G","H"], 79:["C","E","F","H","I"],
+  80:["E","H","I","J","K"], 81:["B","E","F","I","J"], 82:["A","E","H","I","J"],
+  85:["E","F","G","I","J"], 87:["D","E","I","J","L"]
+};
+
+/* 離線備援賽程（與線上資料同格式；佔位名稱會自動換成附加賽勝隊） */
+const FALLBACK = {"matches":[
+{"round":"Matchday 1","date":"2026-06-11","time":"13:00 UTC-6","team1":"Mexico","team2":"South Africa","group":"Group A","ground":"Mexico City"},
+{"round":"Matchday 1","date":"2026-06-11","time":"20:00 UTC-6","team1":"South Korea","team2":"UEFA Path D winner","group":"Group A","ground":"Guadalajara (Zapopan)"},
+{"round":"Matchday 8","date":"2026-06-18","time":"12:00 UTC-4","team1":"UEFA Path D winner","team2":"South Africa","group":"Group A","ground":"Atlanta"},
+{"round":"Matchday 8","date":"2026-06-18","time":"19:00 UTC-6","team1":"Mexico","team2":"South Korea","group":"Group A","ground":"Guadalajara (Zapopan)"},
+{"round":"Matchday 14","date":"2026-06-24","time":"19:00 UTC-6","team1":"UEFA Path D winner","team2":"Mexico","group":"Group A","ground":"Mexico City"},
+{"round":"Matchday 14","date":"2026-06-24","time":"19:00 UTC-6","team1":"South Africa","team2":"South Korea","group":"Group A","ground":"Monterrey (Guadalupe)"},
+{"round":"Matchday 2","date":"2026-06-12","time":"15:00 UTC-4","team1":"Canada","team2":"UEFA Path A winner","group":"Group B","ground":"Toronto"},
+{"round":"Matchday 3","date":"2026-06-13","time":"12:00 UTC-7","team1":"Qatar","team2":"Switzerland","group":"Group B","ground":"San Francisco Bay Area (Santa Clara)"},
+{"round":"Matchday 8","date":"2026-06-18","time":"12:00 UTC-7","team1":"Switzerland","team2":"UEFA Path A winner","group":"Group B","ground":"Los Angeles (Inglewood)"},
+{"round":"Matchday 8","date":"2026-06-18","time":"15:00 UTC-7","team1":"Canada","team2":"Qatar","group":"Group B","ground":"Vancouver"},
+{"round":"Matchday 14","date":"2026-06-24","time":"12:00 UTC-7","team1":"Switzerland","team2":"Canada","group":"Group B","ground":"Vancouver"},
+{"round":"Matchday 14","date":"2026-06-24","time":"12:00 UTC-7","team1":"UEFA Path A winner","team2":"Qatar","group":"Group B","ground":"Seattle"},
+{"round":"Matchday 3","date":"2026-06-13","time":"18:00 UTC-4","team1":"Brazil","team2":"Morocco","group":"Group C","ground":"New York/New Jersey (East Rutherford)"},
+{"round":"Matchday 3","date":"2026-06-13","time":"21:00 UTC-4","team1":"Haiti","team2":"Scotland","group":"Group C","ground":"Boston (Foxborough)"},
+{"round":"Matchday 9","date":"2026-06-19","time":"18:00 UTC-4","team1":"Scotland","team2":"Morocco","group":"Group C","ground":"Boston (Foxborough)"},
+{"round":"Matchday 9","date":"2026-06-19","time":"21:00 UTC-4","team1":"Brazil","team2":"Haiti","group":"Group C","ground":"Philadelphia"},
+{"round":"Matchday 14","date":"2026-06-24","time":"18:00 UTC-4","team1":"Scotland","team2":"Brazil","group":"Group C","ground":"Miami (Miami Gardens)"},
+{"round":"Matchday 14","date":"2026-06-24","time":"18:00 UTC-4","team1":"Morocco","team2":"Haiti","group":"Group C","ground":"Atlanta"},
+{"round":"Matchday 2","date":"2026-06-12","time":"18:00 UTC-7","team1":"USA","team2":"Paraguay","group":"Group D","ground":"Los Angeles (Inglewood)"},
+{"round":"Matchday 3","date":"2026-06-13","time":"21:00 UTC-7","team1":"Australia","team2":"UEFA Path C winner","group":"Group D","ground":"Vancouver"},
+{"round":"Matchday 9","date":"2026-06-19","time":"12:00 UTC-7","team1":"USA","team2":"Australia","group":"Group D","ground":"Seattle"},
+{"round":"Matchday 9","date":"2026-06-19","time":"21:00 UTC-7","team1":"UEFA Path C winner","team2":"Paraguay","group":"Group D","ground":"San Francisco Bay Area (Santa Clara)"},
+{"round":"Matchday 15","date":"2026-06-25","time":"19:00 UTC-7","team1":"UEFA Path C winner","team2":"USA","group":"Group D","ground":"Los Angeles (Inglewood)"},
+{"round":"Matchday 15","date":"2026-06-25","time":"19:00 UTC-7","team1":"Paraguay","team2":"Australia","group":"Group D","ground":"San Francisco Bay Area (Santa Clara)"},
+{"round":"Matchday 4","date":"2026-06-14","time":"12:00 UTC-5","team1":"Germany","team2":"Curaçao","group":"Group E","ground":"Houston"},
+{"round":"Matchday 4","date":"2026-06-14","time":"19:00 UTC-4","team1":"Ivory Coast","team2":"Ecuador","group":"Group E","ground":"Philadelphia"},
+{"round":"Matchday 10","date":"2026-06-20","time":"16:00 UTC-4","team1":"Germany","team2":"Ivory Coast","group":"Group E","ground":"Toronto"},
+{"round":"Matchday 10","date":"2026-06-20","time":"19:00 UTC-5","team1":"Ecuador","team2":"Curaçao","group":"Group E","ground":"Kansas City"},
+{"round":"Matchday 15","date":"2026-06-25","time":"16:00 UTC-4","team1":"Curaçao","team2":"Ivory Coast","group":"Group E","ground":"Philadelphia"},
+{"round":"Matchday 15","date":"2026-06-25","time":"16:00 UTC-4","team1":"Ecuador","team2":"Germany","group":"Group E","ground":"New York/New Jersey (East Rutherford)"},
+{"round":"Matchday 4","date":"2026-06-14","time":"15:00 UTC-5","team1":"Netherlands","team2":"Japan","group":"Group F","ground":"Dallas (Arlington)"},
+{"round":"Matchday 4","date":"2026-06-14","time":"20:00 UTC-6","team1":"UEFA Path B winner","team2":"Tunisia","group":"Group F","ground":"Monterrey (Guadalupe)"},
+{"round":"Matchday 10","date":"2026-06-20","time":"12:00 UTC-5","team1":"Netherlands","team2":"UEFA Path B winner","group":"Group F","ground":"Houston"},
+{"round":"Matchday 10","date":"2026-06-20","time":"22:00 UTC-6","team1":"Tunisia","team2":"Japan","group":"Group F","ground":"Monterrey (Guadalupe)"},
+{"round":"Matchday 15","date":"2026-06-25","time":"18:00 UTC-5","team1":"Japan","team2":"UEFA Path B winner","group":"Group F","ground":"Dallas (Arlington)"},
+{"round":"Matchday 15","date":"2026-06-25","time":"18:00 UTC-5","team1":"Tunisia","team2":"Netherlands","group":"Group F","ground":"Kansas City"},
+{"round":"Matchday 5","date":"2026-06-15","time":"12:00 UTC-7","team1":"Belgium","team2":"Egypt","group":"Group G","ground":"Seattle"},
+{"round":"Matchday 5","date":"2026-06-15","time":"18:00 UTC-7","team1":"Iran","team2":"New Zealand","group":"Group G","ground":"Los Angeles (Inglewood)"},
+{"round":"Matchday 11","date":"2026-06-21","time":"12:00 UTC-7","team1":"Belgium","team2":"Iran","group":"Group G","ground":"Los Angeles (Inglewood)"},
+{"round":"Matchday 11","date":"2026-06-21","time":"18:00 UTC-7","team1":"New Zealand","team2":"Egypt","group":"Group G","ground":"Vancouver"},
+{"round":"Matchday 16","date":"2026-06-26","time":"20:00 UTC-7","team1":"Egypt","team2":"Iran","group":"Group G","ground":"Seattle"},
+{"round":"Matchday 16","date":"2026-06-26","time":"20:00 UTC-7","team1":"New Zealand","team2":"Belgium","group":"Group G","ground":"Vancouver"},
+{"round":"Matchday 5","date":"2026-06-15","time":"12:00 UTC-4","team1":"Spain","team2":"Cape Verde","group":"Group H","ground":"Atlanta"},
+{"round":"Matchday 5","date":"2026-06-15","time":"18:00 UTC-4","team1":"Saudi Arabia","team2":"Uruguay","group":"Group H","ground":"Miami (Miami Gardens)"},
+{"round":"Matchday 11","date":"2026-06-21","time":"12:00 UTC-4","team1":"Spain","team2":"Saudi Arabia","group":"Group H","ground":"Atlanta"},
+{"round":"Matchday 11","date":"2026-06-21","time":"18:00 UTC-4","team1":"Uruguay","team2":"Cape Verde","group":"Group H","ground":"Miami (Miami Gardens)"},
+{"round":"Matchday 16","date":"2026-06-26","time":"19:00 UTC-5","team1":"Cape Verde","team2":"Saudi Arabia","group":"Group H","ground":"Houston"},
+{"round":"Matchday 16","date":"2026-06-26","time":"18:00 UTC-6","team1":"Uruguay","team2":"Spain","group":"Group H","ground":"Guadalajara (Zapopan)"},
+{"round":"Matchday 6","date":"2026-06-16","time":"15:00 UTC-4","team1":"France","team2":"Senegal","group":"Group I","ground":"New York/New Jersey (East Rutherford)"},
+{"round":"Matchday 6","date":"2026-06-16","time":"18:00 UTC-4","team1":"IC Path 2 winner","team2":"Norway","group":"Group I","ground":"Boston (Foxborough)"},
+{"round":"Matchday 12","date":"2026-06-22","time":"17:00 UTC-4","team1":"France","team2":"IC Path 2 winner","group":"Group I","ground":"Philadelphia"},
+{"round":"Matchday 12","date":"2026-06-22","time":"20:00 UTC-4","team1":"Norway","team2":"Senegal","group":"Group I","ground":"New York/New Jersey (East Rutherford)"},
+{"round":"Matchday 16","date":"2026-06-26","time":"15:00 UTC-4","team1":"Norway","team2":"France","group":"Group I","ground":"Boston (Foxborough)"},
+{"round":"Matchday 16","date":"2026-06-26","time":"15:00 UTC-4","team1":"Senegal","team2":"IC Path 2 winner","group":"Group I","ground":"Toronto"},
+{"round":"Matchday 6","date":"2026-06-16","time":"20:00 UTC-5","team1":"Argentina","team2":"Algeria","group":"Group J","ground":"Kansas City"},
+{"round":"Matchday 6","date":"2026-06-16","time":"21:00 UTC-7","team1":"Austria","team2":"Jordan","group":"Group J","ground":"San Francisco Bay Area (Santa Clara)"},
+{"round":"Matchday 12","date":"2026-06-22","time":"12:00 UTC-5","team1":"Argentina","team2":"Austria","group":"Group J","ground":"Dallas (Arlington)"},
+{"round":"Matchday 12","date":"2026-06-22","time":"20:00 UTC-7","team1":"Jordan","team2":"Algeria","group":"Group J","ground":"San Francisco Bay Area (Santa Clara)"},
+{"round":"Matchday 17","date":"2026-06-27","time":"21:00 UTC-5","team1":"Algeria","team2":"Austria","group":"Group J","ground":"Kansas City"},
+{"round":"Matchday 17","date":"2026-06-27","time":"21:00 UTC-5","team1":"Jordan","team2":"Argentina","group":"Group J","ground":"Dallas (Arlington)"},
+{"round":"Matchday 7","date":"2026-06-17","time":"12:00 UTC-5","team1":"Portugal","team2":"IC Path 1 winner","group":"Group K","ground":"Houston"},
+{"round":"Matchday 7","date":"2026-06-17","time":"20:00 UTC-6","team1":"Uzbekistan","team2":"Colombia","group":"Group K","ground":"Mexico City"},
+{"round":"Matchday 13","date":"2026-06-23","time":"12:00 UTC-5","team1":"Portugal","team2":"Uzbekistan","group":"Group K","ground":"Houston"},
+{"round":"Matchday 13","date":"2026-06-23","time":"20:00 UTC-6","team1":"Colombia","team2":"IC Path 1 winner","group":"Group K","ground":"Guadalajara (Zapopan)"},
+{"round":"Matchday 17","date":"2026-06-27","time":"19:30 UTC-4","team1":"Colombia","team2":"Portugal","group":"Group K","ground":"Miami (Miami Gardens)"},
+{"round":"Matchday 17","date":"2026-06-27","time":"19:30 UTC-4","team1":"IC Path 1 winner","team2":"Uzbekistan","group":"Group K","ground":"Atlanta"},
+{"round":"Matchday 7","date":"2026-06-17","time":"15:00 UTC-5","team1":"England","team2":"Croatia","group":"Group L","ground":"Dallas (Arlington)"},
+{"round":"Matchday 7","date":"2026-06-17","time":"19:00 UTC-4","team1":"Ghana","team2":"Panama","group":"Group L","ground":"Toronto"},
+{"round":"Matchday 13","date":"2026-06-23","time":"16:00 UTC-4","team1":"England","team2":"Ghana","group":"Group L","ground":"Boston (Foxborough)"},
+{"round":"Matchday 13","date":"2026-06-23","time":"19:00 UTC-4","team1":"Panama","team2":"Croatia","group":"Group L","ground":"Toronto"},
+{"round":"Matchday 17","date":"2026-06-27","time":"17:00 UTC-4","team1":"Panama","team2":"England","group":"Group L","ground":"New York/New Jersey (East Rutherford)"},
+{"round":"Matchday 17","date":"2026-06-27","time":"17:00 UTC-4","team1":"Croatia","team2":"Ghana","group":"Group L","ground":"Philadelphia"},
+{"round":"Round of 32","num":73,"date":"2026-06-28","time":"12:00 UTC-7","team1":"2A","team2":"2B","ground":"Los Angeles (Inglewood)"},
+{"round":"Round of 32","num":74,"date":"2026-06-29","time":"16:30 UTC-4","team1":"1E","team2":"3A/B/C/D/F","ground":"Boston (Foxborough)"},
+{"round":"Round of 32","num":75,"date":"2026-06-29","time":"19:00 UTC-6","team1":"1F","team2":"2C","ground":"Monterrey (Guadalupe)"},
+{"round":"Round of 32","num":76,"date":"2026-06-29","time":"12:00 UTC-5","team1":"1C","team2":"2F","ground":"Houston"},
+{"round":"Round of 32","num":77,"date":"2026-06-30","time":"17:00 UTC-4","team1":"1I","team2":"3C/D/F/G/H","ground":"New York/New Jersey (East Rutherford)"},
+{"round":"Round of 32","num":78,"date":"2026-06-30","time":"12:00 UTC-5","team1":"2E","team2":"2I","ground":"Dallas (Arlington)"},
+{"round":"Round of 32","num":79,"date":"2026-06-30","time":"19:00 UTC-6","team1":"1A","team2":"3C/E/F/H/I","ground":"Mexico City"},
+{"round":"Round of 32","num":80,"date":"2026-07-01","time":"12:00 UTC-4","team1":"1L","team2":"3E/H/I/J/K","ground":"Atlanta"},
+{"round":"Round of 32","num":81,"date":"2026-07-01","time":"17:00 UTC-7","team1":"1D","team2":"3B/E/F/I/J","ground":"San Francisco Bay Area (Santa Clara)"},
+{"round":"Round of 32","num":82,"date":"2026-07-01","time":"13:00 UTC-7","team1":"1G","team2":"3A/E/H/I/J","ground":"Seattle"},
+{"round":"Round of 32","num":83,"date":"2026-07-02","time":"19:00 UTC-4","team1":"2K","team2":"2L","ground":"Toronto"},
+{"round":"Round of 32","num":84,"date":"2026-07-02","time":"12:00 UTC-7","team1":"1H","team2":"2J","ground":"Los Angeles (Inglewood)"},
+{"round":"Round of 32","num":85,"date":"2026-07-02","time":"20:00 UTC-7","team1":"1B","team2":"3E/F/G/I/J","ground":"Vancouver"},
+{"round":"Round of 32","num":86,"date":"2026-07-03","time":"18:00 UTC-4","team1":"1J","team2":"2H","ground":"Miami (Miami Gardens)"},
+{"round":"Round of 32","num":87,"date":"2026-07-03","time":"20:30 UTC-5","team1":"1K","team2":"3D/E/I/J/L","ground":"Kansas City"},
+{"round":"Round of 32","num":88,"date":"2026-07-03","time":"13:00 UTC-5","team1":"2D","team2":"2G","ground":"Dallas (Arlington)"},
+{"round":"Round of 16","num":89,"date":"2026-07-04","time":"17:00 UTC-4","team1":"W74","team2":"W77","ground":"Philadelphia"},
+{"round":"Round of 16","num":90,"date":"2026-07-04","time":"12:00 UTC-5","team1":"W73","team2":"W75","ground":"Houston"},
+{"round":"Round of 16","num":91,"date":"2026-07-05","time":"16:00 UTC-4","team1":"W76","team2":"W78","ground":"New York/New Jersey (East Rutherford)"},
+{"round":"Round of 16","num":92,"date":"2026-07-05","time":"18:00 UTC-6","team1":"W79","team2":"W80","ground":"Mexico City"},
+{"round":"Round of 16","num":93,"date":"2026-07-06","time":"14:00 UTC-5","team1":"W83","team2":"W84","ground":"Dallas (Arlington)"},
+{"round":"Round of 16","num":94,"date":"2026-07-06","time":"17:00 UTC-7","team1":"W81","team2":"W82","ground":"Seattle"},
+{"round":"Round of 16","num":95,"date":"2026-07-07","time":"12:00 UTC-4","team1":"W86","team2":"W88","ground":"Atlanta"},
+{"round":"Round of 16","num":96,"date":"2026-07-07","time":"13:00 UTC-7","team1":"W85","team2":"W87","ground":"Vancouver"},
+{"round":"Quarter-final","num":97,"date":"2026-07-09","time":"16:00 UTC-4","team1":"W89","team2":"W90","ground":"Boston (Foxborough)"},
+{"round":"Quarter-final","num":98,"date":"2026-07-10","time":"12:00 UTC-7","team1":"W93","team2":"W94","ground":"Los Angeles (Inglewood)"},
+{"round":"Quarter-final","num":99,"date":"2026-07-11","time":"17:00 UTC-4","team1":"W91","team2":"W92","ground":"Miami (Miami Gardens)"},
+{"round":"Quarter-final","num":100,"date":"2026-07-11","time":"20:00 UTC-5","team1":"W95","team2":"W96","ground":"Kansas City"},
+{"round":"Semi-final","num":101,"date":"2026-07-14","time":"14:00 UTC-5","team1":"W97","team2":"W98","ground":"Dallas (Arlington)"},
+{"round":"Semi-final","num":102,"date":"2026-07-15","time":"15:00 UTC-4","team1":"W99","team2":"W100","ground":"Atlanta"},
+{"round":"Match for third place","num":103,"date":"2026-07-18","time":"17:00 UTC-4","team1":"L101","team2":"L102","ground":"Miami (Miami Gardens)"},
+{"round":"Final","num":104,"date":"2026-07-19","time":"15:00 UTC-4","team1":"W101","team2":"W102","ground":"New York/New Jersey (East Rutherford)"}
+]};
+/* ───────────────────────── 工具 ───────────────────────── */
+const $ = s => document.querySelector(s);
+const GROUPS = "ABCDEFGHIJKL".split("");
+let MATCHES = [];
+let schedFilter = "all";
+let pred = loadPred();
+
+/* 淘汰賽三區塊：32 強／16 強／8 強以內（含 8 強、4 強、季軍戰、決賽） */
+const KO_BLOCKS = {
+  r32:["Round of 32"],
+  r16:["Round of 16"],
+  r8:["Quarter-final","Semi-final","Match for third place","Final"]
+};
+const KO_BLOCK_LABELS = [["r32","32 強"],["r16","16 強"],["r8","8 強以內"]];
+let bracketFilter = "r32";
+let predBracketFilter = "r32";
+
+function loadPred(){
+  try{ return JSON.parse(localStorage.getItem("wc2026_pred_v1")) || {group:{},ko:{}}; }
+  catch(e){ return {group:{},ko:{}}; }
+}
+function savePred(){ localStorage.setItem("wc2026_pred_v1", JSON.stringify(pred)); }
+
+/* 隊名模糊比對：大小寫、重音符、「&」vs「and」、連字號等寫法變體都能正確對應 */
+function norm(s){
+  return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/&/g," and ").replace(/[^a-z]+/g," ").trim();
+}
+let ALIAS = null;
+function buildAlias(){
+  ALIAS = {};
+  for(const k in TEAMS) ALIAS[norm(k)] = k;
+  for(const k in PATH_MAP) ALIAS[norm(k)] = PATH_MAP[k];
+  for(const k in ESPN_NAME) ALIAS[norm(k)] = ESPN_NAME[k];
+  const extra = {
+    "bosnia herzegovina":"Bosnia and Herzegovina",
+    "korea republic":"South Korea","republic of korea":"South Korea",
+    "united states of america":"USA","cote d ivoire":"Ivory Coast",
+    "turkiye":"Turkey","cabo verde":"Cape Verde","cape verde islands":"Cape Verde",
+    "congo dr":"DR Congo","democratic republic of congo":"DR Congo","czechia":"Czech Republic"
+  };
+  for(const k in extra) ALIAS[norm(k)] = extra[k];
+}
+function fixName(n){
+  if(TEAMS[n]) return n;
+  if(PATH_MAP[n]) return PATH_MAP[n];
+  if(!ALIAS) buildAlias();
+  return ALIAS[norm(n)] || n;
+}
+function isReal(n){ return !!TEAMS[n]; }
+function zhName(n){ return isReal(n) ? TEAMS[n][0] : n; }
+function flag(n){ return isReal(n) ? TEAMS[n][1] : "⚽"; }
+function rankOf(n){ return isReal(n) ? TEAMS[n][2] : 99; }
+function venueZh(g){ return VENUES[g] || g; }
+function groupLetter(m){ return m.group ? m.group.replace("Group ","") : null; }
+function matchKey(m){
+  return m.num ? "n"+m.num : "g:"+(m.group||"")+":"+m.team1+":"+m.team2;
+}
+
+/* 解析開球時間（"13:00 UTC-6" → Date 物件，顯示時自動轉為裝置時區） */
+function kickoff(m){
+  const mt = /(\d{1,2}):(\d{2})\s*UTC([+-]\d{1,2})/.exec(m.time||"");
+  if(!mt) return new Date(m.date+"T12:00:00Z");
+  const off = (mt[3].length===2 ? mt[3][0]+"0"+mt[3][1] : mt[3]) + ":00";
+  return new Date(`${m.date}T${mt[1].padStart(2,"0")}:${mt[2]}:00${off}`);
+}
+
+function normalize(raw){
+  const arr = raw.map(o=>Object.assign({},o));
+  for(const m of arr){
+    m.team1 = fixName(m.team1); m.team2 = fixName(m.team2);
+    if(!m.num && m.round==="Match for third place") m.num = 103;
+    if(!m.num && m.round==="Final") m.num = 104;
+    m.ko = !m.group;
+    m.dt = kickoff(m);
+    m.key = matchKey(m);
+  }
+  arr.sort((a,b)=>a.dt-b.dt || (a.num||0)-(b.num||0));
+  return arr;
+}
+
+/* 真實比賽結果（含延長賽 et / PK 大戰 p） */
+function realResult(m){
+  if(m.state==="in" || m.state==="pre") return null;   /* 進行中不列入最終結果 */
+  if(m.score1==null || m.score2==null) return null;
+  const a = (m.score1et!=null)? m.score1et : m.score1;
+  const b = (m.score2et!=null)? m.score2et : m.score2;
+  let winner = a>b?1 : b>a?2 : 0;
+  let pk = null;
+  if(m.score1p!=null && m.score2p!=null){
+    pk = [m.score1p, m.score2p];
+    winner = m.score1p>m.score2p ? 1 : 2;
+  }
+  return {a,b,winner,pk,et:(m.score1et!=null)};
+}
+function isLive(m){
+  if(m.state) return m.state==="in";
+  if(realResult(m)) return false;
+  const now = Date.now(), t = m.dt.getTime();
+  return now>=t && now<=t+2.75*3600*1000;
+}
+
+/* ───────────────────────── 積分計算 ───────────────────────── */
+/* mode: "real"＝只用真實比分；"pred"＝真實＋使用者預測（預測勝=1:0、和=0:0） */
+function decideGroup(m, mode){
+  const r = realResult(m);
+  if(r) return {a:r.a, b:r.b, src:"real"};
+  if(mode==="pred"){
+    const p = pred.group[m.key];
+    if(p===1) return {a:1,b:0,src:"pred"};
+    if(p===2) return {a:0,b:1,src:"pred"};
+    if(p===0) return {a:0,b:0,src:"pred"};
+  }
+  return null;
+}
+function computeStandings(mode){
+  const st = {}, done = new Set();
+  for(const g of GROUPS) st[g] = {};
+  for(const m of MATCHES){
+    const g = groupLetter(m); if(!g) continue;
+    for(const t of [m.team1,m.team2]){
+      if(!st[g][t]) st[g][t] = {team:t,P:0,W:0,D:0,L:0,GF:0,GA:0,Pts:0};
+    }
+    const r = decideGroup(m, mode); if(!r) continue;
+    const A = st[g][m.team1], B = st[g][m.team2];
+    A.P++; B.P++; A.GF+=r.a; A.GA+=r.b; B.GF+=r.b; B.GA+=r.a;
+    if(r.a>r.b){A.W++;B.L++;A.Pts+=3;}
+    else if(r.a<r.b){B.W++;A.L++;B.Pts+=3;}
+    else {A.D++;B.D++;A.Pts++;B.Pts++;}
+  }
+  const table = {};
+  for(const g of GROUPS){
+    const rows = Object.values(st[g]);
+    rows.sort((x,y)=> y.Pts-x.Pts || (y.GF-y.GA)-(x.GF-x.GA) || y.GF-x.GF || rankOf(x.team)-rankOf(y.team));
+    table[g] = rows;
+    if(rows.length===4 && rows.every(r=>r.P===3)) done.add(g);
+  }
+  return {table, done};
+}
+
+/* 8 個最佳第三名 + 籤表槽位分配（回溯法） */
+function bestThirds(table, done){
+  if(done.size<12) return null;
+  const thirds = GROUPS.map(g=>({g, ...table[g][2]}));
+  thirds.sort((x,y)=> y.Pts-x.Pts || (y.GF-y.GA)-(x.GF-x.GA) || y.GF-x.GF || rankOf(x.team)-rankOf(y.team));
+  return thirds.slice(0,8).map(t=>t.g);
+}
+function assignThirds(qualified){
+  if(!qualified) return null;
+  const nums = Object.keys(THIRD_SLOTS).map(Number);
+  nums.sort((a,b)=> THIRD_SLOTS[a].filter(g=>qualified.includes(g)).length
+                  - THIRD_SLOTS[b].filter(g=>qualified.includes(g)).length);
+  const used = new Set(), out = {};
+  function bt(i){
+    if(i===nums.length) return true;
+    const n = nums[i];
+    for(const g of THIRD_SLOTS[n]){
+      if(qualified.includes(g) && !used.has(g)){
+        used.add(g); out[n]=g;
+        if(bt(i+1)) return true;
+        used.delete(g); delete out[n];
+      }
+    }
+    return false;
+  }
+  return bt(0) ? out : null;
+}
+
+/* ───────────────────────── 淘汰賽隊伍解析 ───────────────────────── */
+function buildCtx(mode){
+  const {table, done} = computeStandings(mode);
+  const thirdMap = assignThirds(bestThirds(table, done));
+  const winners = {}, losers = {};
+  const koms = MATCHES.filter(m=>m.ko).sort((a,b)=>(a.num||0)-(b.num||0));
+  const ctx = {table, done, thirdMap, winners, losers, mode};
+  for(const m of koms){
+    const t1 = resolveTeam(m,1,ctx), t2 = resolveTeam(m,2,ctx);
+    const r = realResult(m);
+    if(r && r.winner){
+      const wn = r.winner===1 ? (isReal(m.team1)?m.team1:t1) : (isReal(m.team2)?m.team2:t2);
+      const ln = r.winner===1 ? (isReal(m.team2)?m.team2:t2) : (isReal(m.team1)?m.team1:t1);
+      if(wn){winners[m.num]=wn;} if(ln){losers[m.num]=ln;}
+    } else if(mode==="pred" && t1 && t2){
+      const pick = pred.ko[m.num];
+      if(pick===t1){winners[m.num]=t1; losers[m.num]=t2;}
+      else if(pick===t2){winners[m.num]=t2; losers[m.num]=t1;}
+    }
+  }
+  return ctx;
+}
+function resolveTeam(m, idx, ctx){
+  const name = m["team"+idx];
+  if(isReal(name)) return name;
+  if(!ctx) return null;
+  let mt;
+  if((mt = /^([12])([A-L])$/.exec(name))){
+    const g = mt[2];
+    if(ctx.done.has(g)) return ctx.table[g][+mt[1]-1].team;
+    return null;
+  }
+  if(/^3[A-L\/]+$/.test(name)){
+    if(ctx.thirdMap && ctx.thirdMap[m.num]) return ctx.table[ctx.thirdMap[m.num]][2].team;
+    return null;
+  }
+  if((mt = /^W(\d+)$/.exec(name))) return ctx.winners[+mt[1]] || null;
+  if((mt = /^L(\d+)$/.exec(name))) return ctx.losers[+mt[1]] || null;
+  return null;
+}
+function codeZh(code){
+  let mt;
+  if((mt = /^([123])([A-L])$/.exec(code))) return mt[2]+" 組第 "+mt[1]+" 名";
+  if((mt = /^3([A-L\/]+)$/.exec(code))) return "小組第 3（"+mt[1]+"）";
+  if((mt = /^W(\d+)$/.exec(code))) return "第 "+mt[1]+" 場勝者";
+  if((mt = /^L(\d+)$/.exec(code))) return "第 "+mt[1]+" 場敗者";
+  return code;
+}
+
+/* ───────────────────────── 畫面：共用元件 ───────────────────────── */
+function teamHTML(name, code, right, extra){
+  const cls = ["team", right?"right":"", name?"":"tbd", extra||""].join(" ");
+  const show = name ? zhName(name) : codeZh(code);
+  return `<div class="${cls}" ${name&&extra!==undefined?`data-team="${name}"`:""}>
+    <span class="flag">${name?flag(name):"❔"}</span><span class="nm">${show}</span></div>`;
+}
+function scoreHTML(m){
+  const r = realResult(m);
+  if(r){
+    let s = `<div><div class="score">${r.a} : ${r.b}</div>`;
+    if(r.pk) s += `<span class="pk">PK ${r.pk[0]}-${r.pk[1]}${r.et?"（延長）":""}</span>`;
+    else if(r.et) s += `<span class="pk">含延長賽</span>`;
+    return s+"</div>";
+  }
+  if(isLive(m)){
+    if(m.score1!=null && m.score2!=null)
+      return `<div><div class="score">${m.score1} : ${m.score2}</div><span class="pk">⏱ ${m.clock||"進行中"}</span></div>`;
+    return `<div class="score t">進行中</div>`;
+  }
+  const t = m.dt.toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",hour12:false});
+  return `<div class="score t">${t}</div>`;
+}
+function roundTag(m){
+  if(m.group) return `<span class="tag">${groupLetter(m)} 組</span>`;
+  return `<span class="tag ko">${ROUND_ZH[m.round]||m.round}</span>`;
+}
+function matchCard(m, ctx){
+  const t1 = isReal(m.team1)? m.team1 : resolveTeam(m,1,ctx);
+  const t2 = isReal(m.team2)? m.team2 : resolveTeam(m,2,ctx);
+  const r = realResult(m);
+  const w1 = r && r.winner===1 ? "winner":"", w2 = r && r.winner===2 ? "winner":"";
+  const live = isLive(m);
+  return `<div class="match ${live?"live":""}">
+    <div class="meta">
+      <span>${roundTag(m)} ${m.num?`<span class="tag" style="background:#F3EDF9;color:#8a6fae">#${m.num}</span>`:""}</span>
+      ${live?`<span class="live-tag">● LIVE</span>`:""}
+    </div>
+    <div class="row">
+      ${teamHTML(t1, m.team1, false, w1?"winner":"")}
+      ${scoreHTML(m)}
+      ${teamHTML(t2, m.team2, true, w2?"winner":"")}
+    </div>
+    <div class="venue">📍 ${venueZh(m.ground)}</div>
+  </div>`;
+}
+
+/* ───────────────────────── 畫面：賽程 ───────────────────────── */
+function renderChips(){
+  const items = [["all","全部"],["today","今日 ✨"],["ko","淘汰賽"]]
+    .concat(GROUPS.map(g=>["g"+g, g+" 組"]));
+  $("#sched-chips").innerHTML = items.map(([v,l])=>
+    `<button class="chip ${schedFilter===v?"active":""}" data-f="${v}">${l}</button>`).join("");
+}
+function renderSchedule(){
+  renderChips();
+  const ctx = buildCtx("real");
+  const todayKey = new Date().toLocaleDateString("sv");
+  let list = MATCHES.filter(m=>{
+    if(schedFilter==="all") return true;
+    if(schedFilter==="today") return m.dt.toLocaleDateString("sv")===todayKey;
+    if(schedFilter==="ko") return m.ko;
+    return groupLetter(m)===schedFilter.slice(1);
+  });
+  if(!list.length){ $("#sched-list").innerHTML = `<div class="empty">這個範圍沒有比賽喔 🌙</div>`; return; }
+  let html = "", lastDate = "";
+  for(const m of list){
+    const dk = m.dt.toLocaleDateString("sv");
+    if(dk!==lastDate){
+      lastDate = dk;
+      const label = m.dt.toLocaleDateString("zh-TW",{month:"long",day:"numeric",weekday:"short"});
+      html += `<div class="date-head" ${dk===todayKey?'id="today-anchor"':''}>🗓️ ${label}${dk===todayKey?'<span class="badge-today">今天</span>':""}</div>`;
+    }
+    html += matchCard(m, ctx);
+  }
+  $("#sched-list").innerHTML = html;
+  applyTwemoji();
+}
+
+/* ───────────────────────── 畫面：小組積分 ───────────────────────── */
+function standingsTable(g, rows, doneSet){
+  const tr = rows.map((r,i)=>{
+    const cls = i<2 ? "q" : i===2 ? "q3" : "";
+    return `<tr class="${cls}"><td class="tm"><span class="pos-dot">${i+1}</span>${flag(r.team)} ${zhName(r.team)}</td>
+      <td>${r.P}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td>
+      <td>${r.GF-r.GA>0?"+":""}${r.GF-r.GA}</td><td><b>${r.Pts}</b></td></tr>`;
+  }).join("");
+  return `<div class="group-card"><h3>🌸 ${g} 組 ${doneSet&&doneSet.has(g)?"✅":""}</h3>
+    <table class="standings"><thead><tr><th>隊伍</th><th>賽</th><th>勝</th><th>和</th><th>敗</th><th>淨</th><th>分</th></tr></thead>
+    <tbody>${tr}</tbody></table></div>`;
+}
+function renderGroups(){
+  const {table, done} = computeStandings("real");
+  $("#groups-list").innerHTML = GROUPS.map(g=>standingsTable(g, table[g], done)).join("");
+  applyTwemoji();
+}
+
+/* ───────────────────────── 畫面：淘汰賽 ───────────────────────── */
+function renderBracketChips(){
+  $("#bracket-chips").innerHTML = KO_BLOCK_LABELS.map(([v,l])=>
+    `<button class="chip ${bracketFilter===v?"active":""}" data-bf="${v}">${l}</button>`).join("");
+}
+function renderBracket(){
+  renderBracketChips();
+  const ctx = buildCtx("real");
+  const order = KO_BLOCKS[bracketFilter] || KO_BLOCKS.r32;
+  let html = "";
+  for(const rd of order){
+    const ms = MATCHES.filter(m=>m.round===rd);
+    if(!ms.length) continue;
+    html += `<div class="round-title"><span>${ROUND_ZH[rd]}</span></div>`;
+    html += ms.map(m=>matchCard(m,ctx)).join("");
+  }
+  $("#bracket-list").innerHTML = html || `<div class="empty">賽程載入中…</div>`;
+  applyTwemoji();
+}
+
+/* ───────────────────────── 畫面：我的預測 ───────────────────────── */
+function renderPredict(){
+  const gms = MATCHES.filter(m=>!m.ko);
+  let decided = 0;
+  let html = "";
+  for(const g of GROUPS){
+    const ms = gms.filter(m=>groupLetter(m)===g);
+    html += `<div class="round-title"><span>${g} 組</span></div>`;
+    for(const m of ms){
+      const r = realResult(m);
+      const p = pred.group[m.key];
+      if(r || p!==undefined) decided++;
+      let btns;
+      if(r){
+        const lab = r.winner===1?`${zhName(m.team1)} 勝`: r.winner===2?`${zhName(m.team2)} 勝`:"和局";
+        btns = `<div class="pick-row"><button class="pick-btn lock">🔒 已賽：${r.a}:${r.b}（${lab}）</button></div>`;
+      }else if(isLive(m)){
+        btns = `<div class="pick-row"><button class="pick-btn lock">⏱ 進行中 ${m.score1!=null?m.score1+":"+m.score2:""}（結束後自動帶入）</button></div>`;
+      }else{
+        btns = `<div class="pick-row">
+          <button class="pick-btn ${p===1?"sel":""}" data-k="${m.key}" data-v="1">${flag(m.team1)} ${zhName(m.team1)} 勝</button>
+          <button class="pick-btn ${p===0?"sel":""}" data-k="${m.key}" data-v="0">🤝 和局</button>
+          <button class="pick-btn ${p===2?"sel":""}" data-k="${m.key}" data-v="2">${flag(m.team2)} ${zhName(m.team2)} 勝</button>
+        </div>`;
+      }
+      html += `<div class="match">
+        <div class="meta"><span>${roundTag(m)}</span><span>${m.dt.toLocaleDateString("zh-TW",{month:"numeric",day:"numeric"})}</span></div>
+        <div class="row">${teamHTML(m.team1,m.team1,false)}<div class="score t">vs</div>${teamHTML(m.team2,m.team2,true)}</div>
+        ${btns}</div>`;
+    }
+  }
+  $("#pred-groups").innerHTML = html;
+  $("#pred-progress").textContent = `小組賽進度：${decided} / ${gms.length} 場已決定`;
+
+  /* 淘汰賽預測 */
+  const ctx = buildCtx("pred");
+  let kh = "";
+  if(decided < gms.length){
+    $("#pred-bracket-chips").innerHTML = "";
+    kh = `<div class="empty">把上面 ${gms.length} 場小組賽全部決定後，<br>淘汰賽對戰樹就會出現囉 🎀</div>`;
+  }else{
+    $("#pred-bracket-chips").innerHTML = KO_BLOCK_LABELS.map(([v,l])=>
+      `<button class="chip ${predBracketFilter===v?"active":""}" data-pbf="${v}">${l}</button>`).join("");
+    const order = KO_BLOCKS[predBracketFilter] || KO_BLOCKS.r32;
+    for(const rd of order){
+      const ms = MATCHES.filter(m=>m.round===rd);
+      if(!ms.length) continue;
+      kh += `<div class="round-title"><span>🔮 ${ROUND_ZH[rd]}</span></div>`;
+      for(const m of ms){
+        const r = realResult(m);
+        const t1 = isReal(m.team1)? m.team1 : resolveTeam(m,1,ctx);
+        const t2 = isReal(m.team2)? m.team2 : resolveTeam(m,2,ctx);
+        if(r){ kh += matchCard(m, ctx); continue; }
+        const pick = pred.ko[m.num];
+        const s1 = t1 && pick===t1 ? "sel":"", s2 = t2 && pick===t2 ? "sel":"";
+        kh += `<div class="match ko-pick" data-num="${m.num}">
+          <div class="meta"><span>${roundTag(m)} <span class="tag" style="background:#F3EDF9;color:#8a6fae">#${m.num}</span></span><span>點隊伍選勝者 👆</span></div>
+          <div class="row">
+            ${teamHTML(t1, m.team1, false, s1)}
+            <div class="score t">vs</div>
+            ${teamHTML(t2, m.team2, true, s2)}
+          </div></div>`;
+      }
+    }
+    const champ = ctx.winners[104];
+    if(champ){
+      kh += `<div class="champ-card"><div class="cup">🏆✨</div>
+        <div>你預測的世界盃冠軍是</div>
+        <div class="who">${flag(champ)} ${zhName(champ)}</div></div>`;
+    }
+  }
+  $("#pred-bracket").innerHTML = kh;
+  applyTwemoji();
+}
+
+/* 預測互動 */
+document.addEventListener("click", e=>{
+  const pb = e.target.closest(".pick-btn[data-k]");
+  if(pb){
+    const k = pb.dataset.k, v = +pb.dataset.v;
+    if(pred.group[k]===v) delete pred.group[k]; else pred.group[k]=v;
+    savePred(); renderPredict(); return;
+  }
+  const tm = e.target.closest(".ko-pick .team[data-team]");
+  if(tm){
+    const num = +tm.closest(".ko-pick").dataset.num;
+    const name = tm.dataset.team;
+    if(pred.ko[num]===name) delete pred.ko[num]; else pred.ko[num]=name;
+    savePred(); renderPredict(); return;
+  }
+  const chip = e.target.closest(".chip[data-f]");
+  if(chip){ schedFilter = chip.dataset.f; renderSchedule(); return; }
+  const bchip = e.target.closest(".chip[data-bf]");
+  if(bchip){ bracketFilter = bchip.dataset.bf; renderBracket(); return; }
+  const pbchip = e.target.closest(".chip[data-pbf]");
+  if(pbchip){ predBracketFilter = pbchip.dataset.pbf; renderPredict(); return; }
+  const tab = e.target.closest(".tab[data-view]");
+  if(tab){
+    document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t===tab));
+    document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active", v.id==="view-"+tab.dataset.view));
+    renderAll();
+    window.scrollTo({top:0});
+  }
+});
+
+function autoFill(){
+  for(const m of MATCHES){
+    if(m.ko) continue;
+    if(realResult(m) || pred.group[m.key]!==undefined) continue;
+    const d = rankOf(m.team1)-rankOf(m.team2);
+    pred.group[m.key] = Math.abs(d)<=2 ? 0 : (d<0 ? 1 : 2);
+  }
+  /* 依序解析淘汰賽並選較強隊 */
+  for(let i=0;i<6;i++){
+    const ctx = buildCtx("pred");
+    for(const m of MATCHES.filter(x=>x.ko).sort((a,b)=>a.num-b.num)){
+      if(realResult(m) || pred.ko[m.num]) continue;
+      const t1 = isReal(m.team1)? m.team1 : resolveTeam(m,1,ctx);
+      const t2 = isReal(m.team2)? m.team2 : resolveTeam(m,2,ctx);
+      if(t1 && t2) pred.ko[m.num] = rankOf(t1)<=rankOf(t2) ? t1 : t2;
+    }
+  }
+  savePred(); renderPredict();
+}
+function clearPred(){
+  if(!confirm("確定要清除所有預測嗎？")) return;
+  pred = {group:{},ko:{}}; savePred(); renderPredict();
+}
+function scrollToKO(){
+  const el = $("#pred-bracket-chips") || $("#pred-bracket");
+  if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+/* ───────────────────────── 資料載入與自動更新 ───────────────────────── */
+function fixEspn(n){ return fixName(n); }
+
+/* 把 ESPN 計分板資料合併進賽程（依開球時間＋隊名比對） */
+function mergeEspn(json){
+  let merged = 0;
+  for(const ev of (json.events||[])){
+    const comp = ev.competitions && ev.competitions[0]; if(!comp) continue;
+    const home = (comp.competitors||[]).find(c=>c.homeAway==="home");
+    const away = (comp.competitors||[]).find(c=>c.homeAway==="away");
+    if(!home || !away) continue;
+    const hn = fixEspn(home.team.displayName), an = fixEspn(away.team.displayName);
+    const t = new Date(ev.date).getTime();
+    const near = MATCHES.filter(m=>Math.abs(m.dt.getTime()-t) < 65*60*1000);
+    /* 先用隊名比對（小組賽），找不到再用「同一開球時間的淘汰賽」比對 */
+    let m = near.find(x=>(x.team1===hn&&x.team2===an)||(x.team1===an&&x.team2===hn));
+    if(!m){
+      const koNear = near.filter(x=>x.ko && Math.abs(x.dt.getTime()-t)<5*60*1000);
+      if(koNear.length===1) m = koNear[0];
+    }
+    if(!m) continue;
+    /* 淘汰賽：把佔位代號換成真實隊名 */
+    if(m.ko && !isReal(m.team1) && isReal(hn)) m.team1 = hn;
+    if(m.ko && !isReal(m.team2) && isReal(an)) m.team2 = an;
+    const state = ev.status && ev.status.type ? ev.status.type.state : null;
+    m.state = state;
+    m.clock = ev.status && ev.status.displayClock || null;
+    if(state==="in" || state==="post"){
+      const flip = (m.team1===an);   /* 對齊主客方向 */
+      m.score1 = +( flip ? away.score : home.score );
+      m.score2 = +( flip ? home.score : away.score );
+      const p1 = flip ? away.shootoutScore : home.shootoutScore;
+      const p2 = flip ? home.shootoutScore : away.shootoutScore;
+      if(p1!=null && p2!=null){ m.score1p = +p1; m.score2p = +p2; }
+      merged++;
+    }
+  }
+  return merged;
+}
+
+async function fetchData(manual){
+  const dot = $("#net-dot"), txt = $("#update-text");
+  const [of, es] = await Promise.allSettled([
+    fetch(DATA_URL+"?t="+Date.now(), {cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject(r.status)),
+    fetch(ESPN_URL, {cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject(r.status))
+  ]);
+  /* 1) openfootball：取得最新賽程骨架（若失敗就沿用目前的） */
+  if(of.status==="fulfilled" && of.value.matches) MATCHES = normalize(of.value.matches);
+  /* 2) ESPN：把即時／最終比分合併進來 */
+  let espnOK = false;
+  if(es.status==="fulfilled"){ espnOK = true; mergeEspn(es.value); }
+  const now = new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
+  if(espnOK){
+    dot.className = "dot ok";
+    txt.textContent = `即時比分更新中（ESPN）｜ 最後更新 ${now}`;
+  }else if(of.status==="fulfilled"){
+    dot.className = "dot ok";
+    txt.textContent = `賽程已更新 ｜ 比分來源暫時無法連線 ${now}`;
+  }else{
+    dot.className = "dot err";
+    txt.textContent = "目前離線：顯示內建賽程（恢復連線後會自動更新）";
+    if(manual) alert("無法連線到資料來源，請檢查網路後再試 🌧️");
+  }
+  renderAll();
+}
+
+/* 用 Twemoji 圖片取代 emoji 國旗（Windows 預設無法顯示國旗 emoji，會變成兩個字母） */
+function applyTwemoji(){
+  if(window.twemoji){
+    try{ twemoji.parse(document.body, {folder:"svg", ext:".svg",
+      base:"https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/"}); }catch(e){}
+  }
+}
+function renderAll(){
+  const active = document.querySelector(".view.active").id;
+  if(active==="view-schedule") renderSchedule();
+  if(active==="view-groups") renderGroups();
+  if(active==="view-bracket") renderBracket();
+  if(active==="view-predict") renderPredict();
+}
+
+MATCHES = normalize(FALLBACK.matches);   /* 先用內建賽程立即顯示 */
+renderAll();
+fetchData(false);
+setInterval(()=>fetchData(false), 60*1000);   /* 每 60 秒抓最新比數 */
+</script>
+</body>
+</html>

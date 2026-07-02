@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>連結網頁編輯器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght=600;800;900&display=swap');
+        
+        body { font-family: 'Nunito', 'Microsoft JhengHei', sans-serif; }
+        .preview-container {
+            background-color: #fdf2f8;
+            background-image: radial-gradient(#fbcfe8 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+        
+        .cute-card {
+            border: 4px solid #fff;
+            box-shadow: 0 10px 25px rgba(255, 182, 193, 0.4);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .cute-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 35px rgba(255, 182, 193, 0.6);
+            border-color: #fce7f3;
+        }
+        .icon-bounce { transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .cute-card:hover .icon-bounce { transform: scale(1.15) rotate(5deg); }
+        
+        .announcement-slider {
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+        .announcement-box {
+            border-left-width: 12px;
+        }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden bg-gray-50">
+
+    <aside class="w-1/3 min-w-[350px] max-w-[500px] h-full bg-white border-r shadow-xl flex flex-col z-10">
+        <div class="p-6 border-b flex justify-between items-center bg-gray-800 text-white">
+            <h1 class="text-xl font-bold">頁面編輯器</h1>
+            <button onclick="exportHTML()" class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded font-bold shadow transition-colors">
+                匯出 HTML
+            </button>
+        </div>
+        
+        <div class="p-6 border-b bg-gray-50 space-y-4 overflow-y-auto max-h-[45vh]">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">主標題</label>
+                <input type="text" id="pageTitle" value="學習資源" oninput="renderPreview()" class="w-full border p-2 rounded focus:ring-2 focus:ring-pink-300 outline-none">
+            </div>
+
+            <div class="border-t pt-4">
+                <label class="flex items-center space-x-2 text-sm font-bold text-gray-700 mb-2 cursor-pointer">
+                    <input type="checkbox" id="showAnnouncement" onchange="toggleAnnouncement()" class="w-4 h-4 text-pink-500 focus:ring-pink-400 border-gray-300 rounded">
+                    <span>顯示公告說明區塊</span>
+                </label>
+                
+                <div id="announcementSettings" class="hidden space-y-3 mt-3 bg-white p-3 border rounded shadow-inner">
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="block text-xs text-gray-500 mb-1">顯示位置</label>
+                            <select id="announcementPosition" onchange="renderPreview()" class="w-full border p-2 text-sm rounded outline-none focus:ring-1 focus:ring-pink-300">
+                                <option value="top">連結上方</option>
+                                <option value="bottom">連結下方</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs text-gray-500 mb-1">文字對齊</label>
+                            <select id="announcementAlign" onchange="renderPreview()" class="w-full border p-2 text-sm rounded outline-none focus:ring-1 focus:ring-pink-300">
+                                <option value="text-center">置中對齊</option>
+                                <option value="text-left">靠左對齊</option>
+                                <option value="text-right">靠右對齊</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-2">
+                        <span class="block text-xs font-bold text-gray-600 mb-2">公告頁面列表</span>
+                        <div id="announcementPagesContainer" class="space-y-3">
+                            </div>
+                        <button onclick="addAnnouncementPage()" class="mt-2 w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-800 text-xs font-bold py-2 rounded border border-yellow-300 border-dashed transition-colors">
+                            + 新增公告頁
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="linkEditor" class="flex-1 overflow-y-auto p-6 space-y-6">
+            </div>
+
+        <div class="p-6 border-t bg-gray-50">
+            <button onclick="addLink()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded border border-gray-300 border-dashed transition-colors">
+                + 新增連結
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 h-full overflow-y-auto preview-container flex flex-col items-center py-16 px-6 relative">
+        <div class="absolute top-4 right-6 text-pink-400 font-bold opacity-50 tracking-widest uppercase pointer-events-none">Live Preview</div>
+        
+        <header class="mb-10 text-center w-full">
+            <h1 id="previewTitle" class="text-4xl md:text-5xl font-black text-pink-500 tracking-wide drop-shadow-sm mb-3"></h1>
+            <div class="h-2 w-24 bg-pink-300 rounded-full mx-auto"></div>
+        </header>
+
+        <div id="announcementTop" class="w-full max-w-7xl flex justify-center"></div>
+
+        <div id="previewGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl w-full mt-6">
+            </div>
+
+        <div id="announcementBottom" class="w-full max-w-7xl flex justify-center"></div>
+    </main>
+
+<script>
+    const ICONS = {
+        puzzle: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v1H6a3 3 0 0 0-3 3v3h1a3 3 0 0 1 0 6H3v3a3 3 0 0 0 3 3h3v-1a3 3 0 0 1 6 0v1h3a3 3 0 0 0 3-3v-3h-1a3 3 0 0 1 0-6h1V9a3 3 0 0 0-3-3h-3V5a3 3 0 0 0-3-3z"></path></svg>`,
+        robot: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>`,
+        book: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>`,
+        cloud: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>`,
+        code: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
+        star: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
+        video: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>`,
+        music: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`,
+        gamepad: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4"></path><path d="M8 10v4"></path><circle cx="15" cy="13" r="1"></circle><circle cx="18" cy="11" r="1"></circle></svg>`,
+        heart: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
+        lightbulb: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>`,
+        globe: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`,
+        rocket: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>`,
+        pen: `<svg class="w-24 h-24 icon-bounce relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`
+    };
+
+    const THEMES = {
+        red: { bg: 'bg-red-100', text: 'text-red-500', hex: '#ef4444', annBg: 'bg-red-50', annText: 'text-red-900', annBorder: 'border-red-400', radial: 'rgba(239,68,68,0.15)' },
+        orange: { bg: 'bg-orange-100', text: 'text-orange-500', hex: '#f97316', annBg: 'bg-orange-50', annText: 'text-orange-900', annBorder: 'border-orange-400', radial: 'rgba(249,115,22,0.15)' },
+        amber: { bg: 'bg-amber-100', text: 'text-amber-500', hex: '#f59e0b', annBg: 'bg-amber-50', annText: 'text-amber-900', annBorder: 'border-amber-400', radial: 'rgba(245,158,11,0.15)' },
+        yellow: { bg: 'bg-yellow-100', text: 'text-yellow-500', hex: '#eab308', annBg: 'bg-yellow-50', annText: 'text-yellow-900', annBorder: 'border-yellow-400', radial: 'rgba(234,179,8,0.15)' },
+        lime: { bg: 'bg-lime-100', text: 'text-lime-500', hex: '#84cc16', annBg: 'bg-lime-50', annText: 'text-lime-900', annBorder: 'border-lime-400', radial: 'rgba(132,204,22,0.15)' },
+        emerald: { bg: 'bg-emerald-100', text: 'text-emerald-500', hex: '#10b981', annBg: 'bg-emerald-50', annText: 'text-emerald-900', annBorder: 'border-emerald-400', radial: 'rgba(16,185,129,0.15)' },
+        teal: { bg: 'bg-teal-100', text: 'text-teal-500', hex: '#14b8a6', annBg: 'bg-teal-50', annText: 'text-teal-900', annBorder: 'border-teal-400', radial: 'rgba(20,184,166,0.15)' },
+        cyan: { bg: 'bg-cyan-100', text: 'text-cyan-500', hex: '#06b6d4', annBg: 'bg-cyan-50', annText: 'text-cyan-900', annBorder: 'border-cyan-400', radial: 'rgba(6,182,212,0.15)' },
+        blue: { bg: 'bg-blue-100', text: 'text-blue-500', hex: '#3b82f6', annBg: 'bg-blue-50', annText: 'text-blue-900', annBorder: 'border-blue-400', radial: 'rgba(59,130,246,0.15)' },
+        indigo: { bg: 'bg-indigo-100', text: 'text-indigo-500', hex: '#6366f1', annBg: 'bg-indigo-50', annText: 'text-indigo-900', annBorder: 'border-indigo-400', radial: 'rgba(99,102,241,0.15)' },
+        purple: { bg: 'bg-purple-100', text: 'text-purple-500', hex: '#a855f7', annBg: 'bg-purple-50', annText: 'text-purple-900', annBorder: 'border-purple-400', radial: 'rgba(168,85,247,0.15)' },
+        fuchsia: { bg: 'bg-fuchsia-100', text: 'text-fuchsia-500', hex: '#d946ef', annBg: 'bg-fuchsia-50', annText: 'text-fuchsia-900', annBorder: 'border-fuchsia-400', radial: 'rgba(217,70,239,0.15)' },
+        pink: { bg: 'bg-pink-100', text: 'text-pink-500', hex: '#ec4899', annBg: 'bg-pink-50', annText: 'text-pink-900', annBorder: 'border-pink-400', radial: 'rgba(236,72,153,0.15)' },
+        rose: { bg: 'bg-rose-100', text: 'text-rose-500', hex: '#f43f5e', annBg: 'bg-rose-50', annText: 'text-rose-900', annBorder: 'border-rose-400', radial: 'rgba(244,63,94,0.15)' }
+    };
+
+    let links = [
+        { id: generateId(), name: 'Scratch', url: 'https://scratch.mit.edu/', icon: 'puzzle', theme: 'orange' },
+        { id: generateId(), name: 'Hour of AI', url: 'https://code.org/zh-Hant/hour-of-ai', icon: 'robot', theme: 'blue' }
+    ];
+
+    let announcements = [
+        { id: generateId(), text: '這裡是一段重要公告或說明文字。支援多行顯示，字體將會大大明顯！', theme: 'yellow' }
+    ];
+    let previewActiveAnnounceIndex = 0;
+    let previewAnnounceCollapsed = false;
+    let showAnnounce = false;
+
+    function generateId() {
+        return Math.random().toString(36).substr(2, 9);
+    }
+
+    function toggleAnnouncement() {
+        showAnnounce = document.getElementById('showAnnouncement').checked;
+        const settings = document.getElementById('announcementSettings');
+        if (showAnnounce) {
+            settings.classList.remove('hidden');
+        } else {
+            settings.classList.add('hidden');
+        }
+        renderAnnouncementEditor();
+        renderPreview();
+    }
+
+    function addAnnouncementPage() {
+        announcements.push({ id: generateId(), text: '新公告頁面內容', theme: 'yellow' });
+        renderAnnouncementEditor();
+        renderPreview();
+    }
+
+    function removeAnnouncementPage(id) {
+        if (announcements.length <= 1) return;
+        announcements = announcements.filter(a => a.id !== id);
+        if (previewActiveAnnounceIndex >= announcements.length) {
+            previewActiveAnnounceIndex = announcements.length - 1;
+        }
+        renderAnnouncementEditor();
+        renderPreview();
+    }
+
+    function updateAnnouncementPage(id, field, value) {
+        const ann = announcements.find(a => a.id === id);
+        if (ann) {
+            ann[field] = value;
+            renderPreview();
+        }
+    }
+
+    function renderAnnouncementEditor() {
+        const container = document.getElementById('announcementPagesContainer');
+        container.innerHTML = '';
+
+        announcements.forEach((ann, index) => {
+            const item = document.createElement('div');
+            item.className = 'p-2 border rounded bg-gray-50 space-y-2 relative';
+            item.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-600">第 ${index + 1} 頁</span>
+                    ${announcements.length > 1 ? `<button onclick="removeAnnouncementPage('${ann.id}')" class="text-red-500 hover:text-red-700 text-xs">刪除</button>` : ''}
+                </div>
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <label class="block text-[10px] text-gray-400 mb-1">色系</label>
+                        <select onchange="updateAnnouncementPage('${ann.id}', 'theme', this.value)" class="w-full border p-1 text-xs rounded outline-none">
+                            ${Object.keys(THEMES).map(k => `<option value="${k}" ${ann.theme === k ? 'selected' : ''}>${k}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">內容</label>
+                    <textarea oninput="updateAnnouncementPage('${ann.id}', 'text', this.value)" rows="2" class="w-full border p-1 text-xs rounded outline-none resize-y">${ann.text}</textarea>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    function addLink() {
+        links.push({ id: generateId(), name: '新連結', url: 'https://', icon: 'star', theme: 'pink' });
+        renderEditor();
+        renderPreview();
+    }
+
+    function removeLink(id) {
+        links = links.filter(l => l.id !== id);
+        renderEditor();
+        renderPreview();
+    }
+
+    function updateLink(id, field, value) {
+        const link = links.find(l => l.id === id);
+        if (link) {
+            link[field] = value;
+            renderPreview();
+        }
+    }
+
+    function renderEditor() {
+        const container = document.getElementById('linkEditor');
+        container.innerHTML = '';
+
+        links.forEach((link, index) => {
+            const card = document.createElement('div');
+            card.className = 'p-4 border rounded bg-white shadow-sm relative';
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-center mb-3">
+                    <span class="font-bold text-gray-700">項目 ${index + 1}</span>
+                    <button onclick="removeLink('${link.id}')" class="text-red-500 hover:text-red-700 text-sm">刪除</button>
+                </div>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">名稱</label>
+                        <input type="text" value="${link.name}" oninput="updateLink('${link.id}', 'name', this.value)" class="w-full border p-2 text-sm rounded focus:ring-1 focus:ring-blue-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">網址 (URL)</label>
+                        <input type="text" value="${link.url}" oninput="updateLink('${link.id}', 'url', this.value)" class="w-full border p-2 text-sm rounded focus:ring-1 focus:ring-blue-300 outline-none">
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="block text-xs text-gray-500 mb-1">圖示</label>
+                            <select onchange="updateLink('${link.id}', 'icon', this.value)" class="w-full border p-2 text-sm rounded outline-none">
+                                ${Object.keys(ICONS).map(k => `<option value="${k}" ${link.icon === k ? 'selected' : ''}>${k}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs text-gray-500 mb-1">顏色</label>
+                            <select onchange="updateLink('${link.id}', 'theme', this.value)" class="w-full border p-2 text-sm rounded outline-none">
+                                ${Object.keys(THEMES).map(k => `<option value="${k}" ${link.theme === k ? 'selected' : ''}>${k}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function generateCardHTML(link) {
+        const theme = THEMES[link.theme];
+        const iconSVG = ICONS[link.icon].replace('currentColor', theme.hex);
+        
+        return `
+        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="cute-card bg-white rounded-3xl overflow-hidden group flex flex-col no-underline">
+            <div class="h-48 ${theme.bg} flex items-center justify-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(${theme.radial} 2px, transparent 2px); background-size: 15px 15px;"></div>
+                <div class="${theme.text}">
+                    ${iconSVG}
+                </div>
+            </div>
+            <div class="p-6 flex-1 flex items-center justify-center bg-white text-center">
+                <h2 class="text-2xl font-extrabold ${theme.text} opacity-90 group-hover:opacity-100 transition-opacity leading-tight">
+                    ${link.name.replace(/\n/g, '<br>')}
+                </h2>
+            </div>
+        </a>`;
+    }
+
+    window.setPreviewAnnouncePage = function(index) {
+        if (index < 0 || index >= announcements.length) return;
+        previewActiveAnnounceIndex = index;
+        renderPreview();
+    }
+
+    window.togglePreviewAnnounceCollapse = function() {
+        previewAnnounceCollapsed = !previewAnnounceCollapsed;
+        renderPreview();
+    }
+
+    function getAnnouncementHTML(positionContext, isExport = false) {
+        if (!showAnnounce) return '';
+        const alignClass = document.getElementById('announcementAlign').value;
+        const marginClass = positionContext === 'top' ? 'mb-10' : 'mt-10';
+
+        let innerContent = '';
+        announcements.forEach((ann, index) => {
+            const theme = THEMES[ann.theme] || THEMES.yellow;
+            const displayStyle = isExport 
+                ? (index === 0 ? 'block' : 'hidden') 
+                : (index === previewActiveAnnounceIndex ? 'block' : 'hidden');
+                
+            innerContent += `
+            <div class="announcement-page-item ${displayStyle} p-8 md:p-10 ${theme.annBg} ${theme.annText} ${theme.annBorder} border-l-[12px] announcement-box h-full flex flex-col justify-center overflow-hidden w-full">
+                <div class="relative z-10 text-2xl md:text-3xl font-black leading-relaxed tracking-wide ${alignClass}">
+                    ${ann.text.replace(/\n/g, '<br>')}
+                </div>
+            </div>`;
+        });
+
+        const totalPages = announcements.length;
+        let paginationHTML = '';
+        if (totalPages > 1) {
+            paginationHTML = `
+            <div class="absolute bottom-2 right-14 z-20 flex items-center space-x-2 bg-black bg-opacity-10 px-3 py-1 rounded-full text-sm font-bold text-gray-700 whitespace-nowrap">
+                <button onclick="${isExport ? 'changeAnn(-1)' : 'setPreviewAnnouncePage(previewActiveAnnounceIndex-1)'}" class="hover:text-black outline-none">◀</button>
+                <span class="pagination-text">${isExport ? '1' : (previewActiveAnnounceIndex + 1)} / ${totalPages}</span>
+                <button onclick="${isExport ? 'changeAnn(1)' : 'setPreviewAnnouncePage(previewActiveAnnounceIndex+1)'}" class="hover:text-black outline-none">▶</button>
+            </div>`;
+        }
+
+        const isCollapsed = isExport ? false : previewAnnounceCollapsed;
+        const collapseStyle = isCollapsed ? 'width: 0px; opacity: 0; overflow: hidden;' : 'width: 100%; opacity: 1;';
+        const btnIcon = isCollapsed ? '◀' : '▶';
+
+        const hintLabelHTML = isCollapsed 
+            ? `<div class="text-xs text-gray-400 font-bold tracking-widest writing-vertical select-none flex items-center justify-center px-2 py-4" style="writing-mode: vertical-lr;">展開公告</div>`
+            : '';
+
+        return `
+        <div class="w-full max-w-7xl flex items-stretch rounded-2xl shadow-xl bg-white overflow-hidden ${marginClass} relative transition-all duration-300">
+            <div id="announceSliderBody" class="announcement-slider transition-all duration-500 ease-in-out relative flex flex-col" style="${collapseStyle}">
+                <div class="flex-1 w-full">
+                    ${innerContent}
+                </div>
+                ${paginationHTML}
+            </div>
+            <div id="announceControlBar" class="flex bg-gray-200 hover:bg-gray-300 transition-colors border-l border-gray-300 flex-shrink-0">
+                ${hintLabelHTML}
+                <button onclick="${isExport ? 'toggleAnnCollapse()' : 'togglePreviewAnnounceCollapse()'}" class="w-12 h-full flex items-center justify-center font-bold text-gray-600 cursor-pointer select-none outline-none" title="收合/展開">
+                    <span id="annCollapseIcon">${btnIcon}</span>
+                </button>
+            </div>
+        </div>`;
+    }
+
+    function renderPreview() {
+        const title = document.getElementById('pageTitle').value;
+        document.getElementById('previewTitle').textContent = title;
+        
+        const container = document.getElementById('previewGrid');
+        container.innerHTML = links.map(link => generateCardHTML(link)).join('');
+
+        const topContainer = document.getElementById('announcementTop');
+        const bottomContainer = document.getElementById('announcementBottom');
+        
+        topContainer.innerHTML = '';
+        bottomContainer.innerHTML = '';
+
+        if (showAnnounce) {
+            const pos = document.getElementById('announcementPosition').value;
+            if (pos === 'top') {
+                topContainer.innerHTML = getAnnouncementHTML('top', false);
+            } else {
+                bottomContainer.innerHTML = getAnnouncementHTML('bottom', false);
+            }
+        }
+    }
+
+    function exportHTML() {
+        const title = document.getElementById('pageTitle').value;
+        const cardsHTML = links.map(link => generateCardHTML(link)).join('\n        ');
+        
+        let annTopHTML = '';
+        let annBottomHTML = '';
+        
+        if (showAnnounce) {
+            const pos = document.getElementById('announcementPosition').value;
+            if (pos === 'top') annTopHTML = getAnnouncementHTML('top', true);
+            if (pos === 'bottom') annBottomHTML = getAnnouncementHTML('bottom', true);
+        }
+
+        const exportAnnData = JSON.stringify(announcements.map(a => ({
+            theme: THEMES[a.theme] || THEMES.yellow
+        })));
+        
+        const htmlContent = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght=600;800;900&display=swap');
+        
+        body {
+            font-family: 'Nunito', 'Microsoft JhengHei', sans-serif;
+            background-color: #fdf2f8;
+            background-image: radial-gradient(#fbcfe8 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+
+        .cute-card {
+            border: 4px solid #fff;
+            box-shadow: 0 10px 25px rgba(255, 182, 193, 0.4);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .cute-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 35px rgba(255, 182, 193, 0.6);
+            border-color: #fce7f3;
+        }
+
+        .icon-bounce {
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .cute-card:hover .icon-bounce {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .announcement-slider {
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+
+        .announcement-box {
+            border-left-width: 12px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-16 px-6">
+
+    <header class="mb-10 text-center w-full max-w-7xl">
+        <h1 class="text-4xl md:text-5xl font-black text-pink-500 tracking-wide drop-shadow-sm mb-3">
+            ${title}
+        </h1>
+        <div class="h-2 w-24 bg-pink-300 rounded-full mx-auto"></div>
+    </header>
+
+    ${annTopHTML ? `<div class="w-full max-w-7xl flex justify-center">\n        ${annTopHTML}\n    </div>` : ''}
+
+    <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl w-full">
+        ${cardsHTML}
+    </main>
+
+    ${annBottomHTML ? `<div class="w-full max-w-7xl flex justify-center">\n        ${annBottomHTML}\n    </div>` : ''}
+
+<script>
+    var currentAnn = 0;
+    var totalAnns = ${announcements.length};
+    var isAnnounceCollapsed = false;
+    var annData = ${exportAnnData};
+
+    window.renderAnnState = function() {
+        var slider = document.getElementById('announceSliderBody');
+        var controlBar = document.getElementById('announceControlBar');
+        var icon = document.getElementById('annCollapseIcon');
+        
+        var oldLabel = controlBar.querySelector('.hint-label');
+        if (oldLabel) oldLabel.remove();
+
+        if (isAnnounceCollapsed) {
+            slider.style.width = '0px';
+            slider.style.opacity = '0';
+            slider.style.overflow = 'hidden';
+            icon.textContent = '◀';
+            
+            var hint = document.createElement('div');
+            hint.className = 'hint-label text-xs text-gray-400 font-bold tracking-widest flex items-center justify-center px-2 py-4';
+            hint.style.writingMode = 'vertical-lr';
+            hint.style.userSelect = 'none';
+            hint.textContent = '展開公告';
+            controlBar.insertBefore(hint, controlBar.firstChild);
+        } else {
+            slider.style.width = '100%';
+            slider.style.opacity = '1';
+            slider.style.overflow = 'visible';
+            icon.textContent = '▶';
+        }
+
+        var items = slider.querySelectorAll('.announcement-page-item');
+        for (var i = 0; i < items.length; i++) {
+            if (i === currentAnn) {
+                items[i].style.display = isAnnounceCollapsed ? 'none' : 'block';
+                
+                if(!isAnnounceCollapsed && annData[i]) {
+                    var box = items[i];
+                    box.className = box.className.replace(/bg-\\S+/g, '').replace(/text-\\S+/g, '').replace(/border-\\S+/g, '');
+                    box.classList.add(annData[i].theme.annBg, annData[i].theme.annText, annData[i].theme.annBorder);
+                }
+            } else {
+                items[i].style.display = 'none';
+            }
+        }
+
+        var pageSpan = slider.querySelector('.pagination-text');
+        if (pageSpan) {
+            pageSpan.textContent = (currentAnn + 1) + ' / ' + totalAnns;
+        }
+    };
+
+    window.changeAnn = function(dir) {
+        currentAnn += dir;
+        if (currentAnn < 0) currentAnn = totalAnns - 1;
+        if (currentAnn >= totalAnns) currentAnn = 0;
+        window.renderAnnState();
+    };
+
+    window.toggleAnnCollapse = function() {
+        isAnnounceCollapsed = !isAnnounceCollapsed;
+        window.renderAnnState();
+    };
+    
+    // 初始化導出網頁狀態
+    if(totalAnns > 0) {
+        window.renderAnnState();
+    }
+<\/script>
+</body>
+</html>`;
+
+        var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = (title || '網頁') + '.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // 初始化
+    renderAnnouncementEditor();
+    renderEditor();
+    renderPreview();
+</script>
+</body>
+</html>
